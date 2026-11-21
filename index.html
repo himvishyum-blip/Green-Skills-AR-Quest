@@ -1,690 +1,137 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Green Skills AR Quest</title>
-
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#061b16" />
+<title>Green Skills AR Quest | Eco Guardian</title>
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.3.1/dist/tf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8/dist/teachablemachine-image.min.js"></script>
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <style>
-* { box-sizing: border-box; }
-
-body {
-  margin: 0;
-  min-height: 100vh;
-  font-family: Arial, sans-serif;
-  text-align: center;
-  color: white;
-  background: linear-gradient(#8ed7a2, #e2f5c9, #276b3b);
-}
-
-body.healed {
-  background: linear-gradient(#63c9ed, #c9f2c5, #16733d);
-}
-
-header {
-  padding: 20px 10px;
-  color: #08391f;
-}
-
-header h1 {
-  font-size: 30px;
-}
-
-.container {
-  width: 94%;
-  max-width: 700px;
-  margin: auto;
-}
-
-.panel {
-  background: rgba(5,48,27,.92);
-  border: 2px solid white;
-  border-radius: 18px;
-  padding: 15px;
-  margin: 12px 0;
-}
-
-.score {
-  font-size: 26px;
-  font-weight: bold;
-  color: #eaffc9;
-}
-
-button {
-  border: none;
-  border-radius: 25px;
-  padding: 13px 20px;
-  margin: 7px;
-  background: #b7f36b;
-  color: #173b16;
-  font-weight: bold;
-  font-size: 16px;
-  cursor: pointer;
-}
-
-button:disabled {
-  opacity: .5;
-}
-
-#webcam-container canvas {
-  width: 100%;
-  max-width: 420px;
-  border-radius: 14px;
-  border: 3px solid #d7ffb0;
-}
-
-#status {
-  min-height: 30px;
-  font-weight: bold;
-  margin: 12px;
-}
-
-#prediction {
-  font-size: 18px;
-}
-
-#confidence {
-  font-size: 14px;
-}
-
-.scene {
-  position: relative;
-  height: 245px;
-  overflow: hidden;
-  border-radius: 16px;
-  background: linear-gradient(#79c8e8 0 62%, #7fbd55 62%);
-  border: 2px solid #d8ffb3;
-  margin-top: 12px;
-}
-
-.sun {
-  position: absolute;
-  width: 55px;
-  height: 55px;
-  border-radius: 50%;
-  background: #ffe98b;
-  top: 20px;
-  right: 30px;
-  box-shadow: 0 0 28px #fff2a6;
-}
-
-.cloud {
-  position: absolute;
-  top: 40px;
-  left: -130px;
-  font-size: 42px;
-  animation: cloud 22s linear infinite;
-}
-
-.cloud.two {
-  top: 80px;
-  animation-delay: -11s;
-}
-
-.hills {
-  position: absolute;
-  bottom: 0;
-  left: -5%;
-  width: 110%;
-  height: 90px;
-  background: #4b9b48;
-  border-radius: 50% 50% 0 0;
-}
-
-.hills:after {
-  content: "";
-  position: absolute;
-  right: -4%;
-  bottom: -12px;
-  width: 65%;
-  height: 80px;
-  background: #287c3d;
-  border-radius: 50% 50% 0 0;
-}
-
-.tree {
-  position: absolute;
-  bottom: 42px;
-  left: 50%;
-  transform: translateX(-50%) scale(.1);
-  opacity: 0;
-  font-size: 110px;
-  z-index: 3;
-}
-
-.tree.grow {
-  animation: treeGrow 2.2s ease-out forwards;
-}
-
-.tree.sway {
-  animation: treeSway 3s ease-in-out infinite alternate;
-}
-
-.machine {
-  position: absolute;
-  bottom: 22px;
-  left: 50%;
-  transform: translateX(-50%) scale(.5);
-  opacity: 0;
-  font-size: 80px;
-}
-
-.machine.recycle {
-  animation: machineIn .6s ease-out forwards,
-             machineShake .5s 3 .6s;
-}
-
-.energy {
-  position: absolute;
-  inset: 0;
-  display: none;
-  pointer-events: none;
-}
-
-.energy.show {
-  display: block;
-}
-
-.energy span {
-  position: absolute;
-  left: 50%;
-  top: 48%;
-  font-size: 30px;
-  animation: zap 1.2s ease-out forwards;
-}
-
-.energy span:nth-child(2) { animation-delay: .12s; }
-.energy span:nth-child(3) { animation-delay: .24s; }
-.energy span:nth-child(4) { animation-delay: .36s; }
-
-.particle {
-  position: fixed;
-  z-index: 20;
-  pointer-events: none;
-  font-size: 22px;
-  animation: confetti 1.5s ease-out forwards;
-}
-
-.instructions {
-  text-align: left;
-  line-height: 1.7;
-}
-
-@keyframes cloud {
-  from { left: -140px; }
-  to { left: 110%; }
-}
-
-@keyframes treeGrow {
-  0% {
-    transform: translateX(-50%) scale(.05);
-    opacity: 0;
-  }
-  65% {
-    transform: translateX(-50%) scale(1.15);
-    opacity: 1;
-  }
-  100% {
-    transform: translateX(-50%) scale(1);
-    opacity: 1;
-  }
-}
-
-@keyframes treeSway {
-  from { rotate: -3deg; }
-  to { rotate: 3deg; }
-}
-
-@keyframes machineIn {
-  to {
-    transform: translateX(-50%) scale(1);
-    opacity: 1;
-  }
-}
-
-@keyframes machineShake {
-  0%,100% { translate: 0 0; }
-  25% { translate: -7px 0; }
-  75% { translate: 7px 0; }
-}
-
-@keyframes zap {
-  0% {
-    transform: translate(-50%,-50%) scale(.2);
-    opacity: 0;
-  }
-  35% { opacity: 1; }
-  100% {
-    transform: translate(-50%,-150%) scale(1.7);
-    opacity: 0;
-  }
-}
-
-@keyframes confetti {
-  0% {
-    transform: translate(0,0);
-    opacity: 1;
-  }
-  100% {
-    transform: translate(var(--dx),var(--dy)) rotate(500deg);
-    opacity: 0;
-  }
-}
+:root{--lime:#b7ff62;--mint:#5fffc0;--cyan:#63e8ff;--bg:#04130f;--panel:rgba(7,31,25,.78);--line:rgba(151,255,194,.24);--muted:#a6c9b8}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 50% 0%,#174a37 0%,#071d17 44%,#020a08 100%);color:#effff5;font-family:Inter,system-ui,Segoe UI,Arial,sans-serif;overflow-x:hidden}
+#space{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;opacity:.9}.scanlines{position:fixed;inset:0;z-index:1;pointer-events:none;background:repeating-linear-gradient(0deg,transparent 0 3px,rgba(130,255,180,.018) 4px 5px);mix-blend-mode:screen}.app{position:relative;z-index:2;max-width:1120px;margin:auto;padding:20px 18px 45px}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:24px}.brand{display:flex;align-items:center;gap:12px}.logo{width:46px;height:46px;border:1px solid #a9ff78;border-radius:14px;display:grid;place-items:center;font-size:25px;background:linear-gradient(145deg,rgba(183,255,98,.2),rgba(95,255,192,.06));box-shadow:0 0 24px #79ff8a33}.brand small{display:block;color:var(--mint);letter-spacing:2.5px;font-size:10px;font-weight:800}.brand strong{font-size:17px;letter-spacing:1.3px}.top-actions{display:flex;gap:8px;align-items:center}.pill{border:1px solid var(--line);border-radius:99px;padding:9px 13px;background:#09271f;color:#dfffee;font-size:12px}
+.hero{text-align:center;padding:30px 12px 25px;position:relative}.eyebrow{color:var(--mint);font-size:11px;letter-spacing:4px;font-weight:900}.hero h1{font-size:clamp(34px,7vw,66px);line-height:1.02;margin:12px 0;background:linear-gradient(90deg,#efffe8,#aaff6c,#65f6c5);-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:0 0 35px #9bff7a25}.hero p{color:#b7d7c7;margin:0 auto;max-width:650px;font-size:15px;line-height:1.6}.hero-buttons{margin-top:22px;display:flex;justify-content:center;gap:12px;flex-wrap:wrap}
+.btn{border:0;border-radius:12px;padding:13px 20px;font-weight:900;letter-spacing:.5px;cursor:pointer;transition:.22s transform,.22s box-shadow,.22s filter}.btn:hover{transform:translateY(-3px);filter:brightness(1.08)}.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}.primary{color:#092014;background:linear-gradient(100deg,#c5ff69,#55f4b0);box-shadow:0 0 25px #83ff9a44}.secondary{color:#dcfff0;background:rgba(10,45,35,.82);border:1px solid #8bffc05c}.smallbtn{padding:9px 13px;font-size:12px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:15px 0 20px}.stat,.panel{background:linear-gradient(145deg,rgba(11,48,37,.88),rgba(4,21,17,.82));border:1px solid var(--line);box-shadow:0 15px 45px #0005,inset 0 1px #ffffff0a;backdrop-filter:blur(14px);border-radius:18px}.stat{padding:15px;text-align:center}.stat span{display:block;color:var(--muted);font-size:11px;letter-spacing:1.4px;text-transform:uppercase}.stat strong{display:block;color:var(--lime);font-size:26px;margin-top:4px;text-shadow:0 0 18px #b7ff6260}
+.layout{display:grid;grid-template-columns:1.04fr .96fr;gap:16px}.panel{padding:19px;margin-bottom:16px}.panel h2{font-size:17px;margin:0 0 14px;letter-spacing:.6px}.panel h2 em{font-style:normal;color:var(--mint)}.camera-frame{position:relative;border:1px solid #77ffb45c;border-radius:15px;overflow:hidden;min-height:245px;background:radial-gradient(circle at center,#143e30,#03100c 75%);display:grid;place-items:center}.camera-frame:before{content:"";position:absolute;inset:12px;border:1px solid #9bffc52b;border-radius:10px;pointer-events:none;z-index:2}.camera-frame:after{content:"";position:absolute;left:12%;right:12%;height:2px;top:20%;background:linear-gradient(90deg,transparent,var(--mint),transparent);box-shadow:0 0 12px var(--mint);opacity:.65;animation:scan 3s linear infinite;pointer-events:none;z-index:3}@keyframes scan{to{top:82%}}#webcam-container{width:100%;display:grid;place-items:center;padding:8px}#webcam-container canvas{width:100%;max-width:420px;height:auto;border-radius:10px;display:block}#webcam-container .placeholder{padding:35px 12px;color:#a5c8b7;text-align:center;font-size:13px;line-height:1.7}.status{margin:13px 0 7px;color:var(--mint);font-weight:800;min-height:24px;font-size:13px}.prediction{font-size:14px;color:#effff5;margin:5px 0}.confidence{font-size:12px;color:var(--muted);margin:5px 0 12px}.camera-actions{display:flex;gap:8px;flex-wrap:wrap}.camera-actions .btn{flex:1;min-width:110px}
+.world{position:relative;min-height:345px;overflow:hidden;border-radius:16px;border:1px solid #8bffc04d;background:radial-gradient(ellipse at 50% 82%,#1e7749 0%,#0a382b 38%,#041611 76%)}.world:before{content:"";position:absolute;width:230px;height:230px;border-radius:50%;border:1px solid #6effc044;left:50%;top:48%;transform:translate(-50%,-50%);box-shadow:0 0 35px #54ffb022,inset 0 0 35px #54ffb022}.world:after{content:"";position:absolute;inset:auto -10% -80px;height:160px;border-radius:50%;background:radial-gradient(ellipse,#64ff9a4a,transparent 70%)}.portal{position:absolute;left:50%;top:49%;width:180px;height:180px;transform:translate(-50%,-50%);border-radius:50%;border:2px solid #7bffbd99;box-shadow:0 0 15px #53ffb7,0 0 50px #53ffb755,inset 0 0 35px #53ffb733;animation:portal 5s linear infinite}.portal:before,.portal:after{content:"";position:absolute;inset:12px;border-radius:50%;border:1px dashed #b5ff9d99;animation:portal 12s linear infinite reverse}.portal:after{inset:27px;border-style:solid;border-color:#5fefff66;animation-duration:8s}@keyframes portal{to{transform:rotate(360deg)}}.earth{position:absolute;left:50%;top:49%;width:112px;height:112px;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle at 33% 28%,#b4ffad 0%,#3dbf87 20%,#126b63 48%,#063d46 75%,#031b28 100%);box-shadow:inset -18px -12px 28px #00131c,0 0 34px #56ffbe99,0 0 90px #4bffc033;animation:float 4s ease-in-out infinite}.earth:before{content:"";position:absolute;inset:16px 25px 30px 13px;background:#9dff7b;opacity:.7;filter:blur(7px);clip-path:polygon(20% 0,70% 8%,100% 35%,75% 55%,83% 100%,40% 78%,0 48%)}@keyframes float{50%{transform:translate(-50%,-56%)}}.world-label{position:absolute;top:15px;left:0;right:0;text-align:center;color:#c9ffe1;font-size:10px;letter-spacing:3px;font-weight:900}.world-tree{position:absolute;bottom:24px;left:50%;transform:translateX(-50%) scale(.2);opacity:0;font-size:66px;filter:drop-shadow(0 0 14px #a7ff65);z-index:4}.world-tree.grow{animation:growtree 1.5s cubic-bezier(.2,.9,.2,1) forwards}@keyframes growtree{to{transform:translateX(-50%) scale(1);opacity:1}}.world-machine{position:absolute;bottom:24px;left:50%;transform:translateX(-50%) scale(.3);opacity:0;font-size:56px;z-index:4}.world-machine.active{animation:machinepop .6s ease-out forwards,shake .35s .6s 3}@keyframes machinepop{to{opacity:1;transform:translateX(-50%) scale(1)}}@keyframes shake{25%{margin-left:-8px}75%{margin-left:8px}}
+.world-energy{position:absolute;inset:0;pointer-events:none;z-index:5}.world-energy i{position:absolute;left:50%;top:50%;font-style:normal;font-size:25px;animation:burst 1.2s ease-out forwards}.world-energy i:nth-child(2){animation-delay:.12s}.world-energy i:nth-child(3){animation-delay:.24s}.world-energy i:nth-child(4){animation-delay:.36s}@keyframes burst{from{transform:translate(-50%,-50%) scale(.2);opacity:0}35%{opacity:1}to{transform:translate(calc(-50% + var(--x)),calc(-50% + var(--y))) scale(1.7);opacity:0}}
+.mission{display:flex;align-items:center;gap:12px;padding:12px;border:1px solid #8bffc02a;border-radius:12px;background:#0a2b21;margin:9px 0}.mission .ico{font-size:25px}.mission strong{display:block;font-size:13px}.mission small{color:var(--muted);font-size:11px}.mission .pts{margin-left:auto;color:var(--lime);font-weight:900}.progress{height:8px;background:#163a2d;border-radius:20px;overflow:hidden;margin-top:13px}.progress>div{height:100%;width:0;background:linear-gradient(90deg,#a8ff5e,#50ffc3);border-radius:20px;transition:width .5s}.hint{color:var(--muted);font-size:12px;line-height:1.6}.achievement{display:none;color:#d9ff9b;text-align:center;font-weight:900;margin-top:12px;text-shadow:0 0 15px #aaff6c}.achievement.show{display:block;animation:pop .6s ease}@keyframes pop{50%{transform:scale(1.18)}}
+footer{text-align:center;color:#719987;font-size:11px;padding:20px 0 5px;letter-spacing:1px}.toast{position:fixed;left:50%;bottom:22px;transform:translate(-50%,30px);opacity:0;z-index:20;background:#c4ff79;color:#092014;padding:12px 18px;border-radius:30px;font-weight:900;font-size:13px;box-shadow:0 0 30px #8bff7a66;transition:.3s;pointer-events:none}.toast.show{opacity:1;transform:translate(-50%,0)}.confetti{position:fixed;z-index:30;pointer-events:none;font-size:20px;animation:confetti 1.7s ease-out forwards}@keyframes confetti{to{transform:translate(var(--dx),var(--dy)) rotate(600deg);opacity:0}}
+@media(max-width:760px){.layout{grid-template-columns:1fr}.hero{padding-top:18px}.stats{gap:7px}.stat{padding:12px 5px}.stat strong{font-size:22px}.stat span{font-size:9px}.topbar{align-items:flex-start}.brand strong{font-size:13px}.pill{font-size:10px;padding:8px}.panel{padding:14px}.world{min-height:310px}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important}}
 </style>
 </head>
-
 <body>
-
-<header>
-  <h1>🌱 GREEN SKILLS AR QUEST</h1>
-  <p>Scan Waste. Earn Points. Save the Planet!</p>
-</header>
-
-<div class="container">
-
-<section class="panel">
-
-  <div class="score">
-    🏆 Green Score: <span id="score">0</span>
+<canvas id="space"></canvas><div class="scanlines"></div>
+<main class="app">
+  <nav class="topbar">
+    <div class="brand"><div class="logo">🌿</div><div><small>MISSION: PLANET EARTH</small><strong>GREEN SKILLS <span style="color:var(--lime)">AR QUEST</span></strong></div></div>
+    <div class="top-actions"><span class="pill" id="levelPill">LEVEL 01 · ROOKIE</span><button class="btn secondary smallbtn" id="soundBtn" type="button">🔊 SOUND ON</button></div>
+  </nav>
+  <section class="hero">
+    <div class="eyebrow">✦ THE FUTURE IS IN YOUR HANDS ✦</div>
+    <h1>BE AN ECO<br>GUARDIAN</h1>
+    <p>Scan waste with AI. Restore the planet. Collect green energy and unlock a cleaner world.</p>
+    <div class="hero-buttons"><button class="btn primary" id="launchBtn" type="button">⚡ ENTER THE QUEST</button><button class="btn secondary" id="howBtn" type="button">HOW TO PLAY ↓</button></div>
+  </section>
+  <section class="stats">
+    <div class="stat"><span>Green score</span><strong id="score">0</strong></div>
+    <div class="stat"><span>Items recycled</span><strong id="items">0</strong></div>
+    <div class="stat"><span>Eco level</span><strong id="level">01</strong></div>
+  </section>
+  <div class="layout" id="game">
+    <section>
+      <div class="panel">
+        <h2>◉ AI <em>WASTE SCANNER</em></h2>
+        <div class="camera-frame"><div id="webcam-container"><div class="placeholder">📷<br><b>AI SCANNER STANDBY</b><br>Press START AI CAMERA and show a plastic bottle or e-waste item.</div></div></div>
+        <div class="status" id="status">System ready. Enter the quest to begin.</div>
+        <p class="prediction" id="prediction">AI Detection: Waiting</p><p class="confidence" id="confidence">Confidence: --</p>
+        <div class="camera-actions"><button class="btn primary" id="startBtn" type="button">▶ START CAMERA</button><button class="btn secondary" id="stopBtn" type="button" disabled>■ STOP</button><button class="btn secondary" id="resetBtn" type="button">↻ RESET</button></div>
+        <p class="hint">Tip: Allow camera access. Hold one item clearly in front of the camera in good light. AI recognition requires an internet connection.</p>
+      </div>
+      <div class="panel" id="how">
+        <h2>🎯 <em>YOUR MISSIONS</em></h2>
+        <div class="mission"><span class="ico">🧴</span><div><strong>PLASTIC PURIFIER</strong><small>Show a plastic bottle to the AI scanner</small></div><span class="pts">+10 XP</span></div>
+        <div class="mission"><span class="ico">🔋</span><div><strong>E-WASTE RECLAIMER</strong><small>Identify electronic waste or a battery</small></div><span class="pts">+20 XP</span></div>
+        <div class="progress"><div id="progressBar"></div></div><p class="hint" id="progressText">0 / 5 successful scans to reach Eco Guardian level.</p>
+        <div class="achievement" id="achievement">🏆 ECO GUARDIAN UNLOCKED!</div>
+      </div>
+    </section>
+    <section>
+      <div class="panel">
+        <h2>🌍 <em>PLANET RESTORATION</em></h2>
+        <div class="world">
+          <div class="world-label">LIVE PLANET STATUS · RESTORATION CORE</div><div class="portal"></div><div class="earth"></div>
+          <div class="world-tree" id="tree">🌳</div><div class="world-machine" id="machine">♻️</div>
+          <div class="world-energy" id="energy"></div>
+        </div>
+        <p class="hint" id="effectMessage" style="text-align:center;margin:14px 0 0">Your mission can bring this world back to life.</p>
+      </div>
+      <div class="panel">
+        <h2>🛰️ <em>MISSION CONTROL</em></h2>
+        <p class="hint">Every correct scan earns green XP. Plastic bottles help grow a tree. E-waste powers the recycling core. Complete five scans to unlock your Eco Guardian badge.</p>
+        <div class="mission"><span class="ico">🌱</span><div><strong>RESTORE NATURE</strong><small>Grow the planet's green cover</small></div><span class="pts">+10</span></div>
+        <div class="mission"><span class="ico">⚡</span><div><strong>POWER THE FUTURE</strong><small>Recover resources from e-waste</small></div><span class="pts">+20</span></div>
+      </div>
+    </section>
   </div>
-
-  <div id="status">
-    Press START AI CAMERA to begin.
-  </div>
-
-  <div id="webcam-container">
-    Camera preview will appear here
-  </div>
-
-  <p id="prediction">AI Detection: Waiting</p>
-  <p id="confidence">Confidence: --</p>
-
-  <button id="startBtn">▶️ START AI CAMERA</button>
-  <button id="stopBtn" disabled>■ STOP CAMERA</button>
-  <button id="resetBtn">↻ RESET SCORE</button>
-
-</section>
-
-<section class="panel">
-
-  <h2>🌍 YOUR GREEN WORLD</h2>
-
-  <div class="scene">
-
-    <div class="sun"></div>
-
-    <div class="cloud">☁️</div>
-    <div class="cloud two">☁️</div>
-
-    <div class="hills"></div>
-
-    <div class="tree" id="tree">🌳</div>
-
-    <div class="machine" id="machine">♻️</div>
-
-    <div class="energy" id="energy">
-      <span>⚡</span>
-      <span>✨</span>
-      <span>⚡</span>
-      <span>🌟</span>
-    </div>
-
-  </div>
-
-  <p id="effectMessage">
-    Your actions can make the planet greener!
-  </p>
-
-</section>
-
-<section class="panel instructions">
-
-  <h3>♻️ HOW TO PLAY</h3>
-
-  <p>🧴 Plastic Bottle: +10 Points</p>
-
-  <p>🔋 E-Waste: +20 Points</p>
-
-  <p>🌳 Grow a tree and restore nature.</p>
-
-  <p>⚡ Recycle e-waste and create green energy.</p>
-
-</section>
-
-</div>
-
-<footer>
-  Green Skills AR Quest | AI + AR + Sustainability
-</footer>
-
+  <footer>GREEN SKILLS AR QUEST · AI FOR A SUSTAINABLE FUTURE · MADE FOR ECO GUARDIANS</footer>
+</main>
+<div class="toast" id="toast">MISSION COMPLETE!</div>
 <script>
-
-// TEACHABLE MACHINE MODEL LINK
-
-const MODEL_URL =
-"https://teachablemachine.withgoogle.com/models/TtI0zkQlZ/";
-
-let model = null;
-let webcam = null;
-let running = false;
-let busy = false;
-let score = 0;
-let lastAwardTime = 0;
-let frameId = null;
-
-
-// START APPLICATION
-
-async function startApp() {
-
-  if (running) return;
-
-  startBtn.disabled = true;
-  statusText("Loading AI Model...");
-
-  try {
-
-    if (!model) {
-      model = await tmImage.load(
-        MODEL_URL + "model.json",
-        MODEL_URL + "metadata.json"
-      );
-    }
-
-    statusText("AI loaded. Starting camera...");
-
-    webcam = new tmImage.Webcam(320,320,false);
-
-    await webcam.setup({
-      facingMode: "environment"
-    });
-
-    await webcam.play();
-
-    document.getElementById("webcam-container").innerHTML = "";
-
-    document.getElementById("webcam-container")
-      .appendChild(webcam.canvas);
-
-    running = true;
-
-    stopBtn.disabled = false;
-
-    statusText("Camera ready! Show a waste item.");
-
-    loop();
-
-  } catch(error) {
-
-    console.error(error);
-
-    statusText("Camera or model error. Check permissions and internet.");
-
-    startBtn.disabled = false;
-
-    if (webcam) {
-      try { webcam.stop(); } catch(e) {}
-      webcam = null;
-    }
-  }
-}
-
-
-// DETECTION LOOP
-
-async function loop() {
-
-  if (!running || !webcam) return;
-
-  webcam.update();
-
-  if (!busy) {
-
-    busy = true;
-
-    try {
-      await predictWaste();
-    } catch(error) {
-      console.error(error);
-      statusText("Detection error. Restart the camera.");
-    }
-
-    busy = false;
-  }
-
-  if (running) {
-    frameId = requestAnimationFrame(loop);
-  }
-}
-
-
-// AI PREDICTION
-
-async function predictWaste() {
-
-  const predictions = await model.predict(webcam.canvas);
-
-  const best = predictions.reduce((a,b) =>
-    a.probability > b.probability ? a : b
-  );
-
-  const name = best.className.trim();
-  const confidence = best.probability;
-
-  document.getElementById("prediction").innerText =
-    "AI Detection: " + name;
-
-  document.getElementById("confidence").innerText =
-    "Confidence: " + (confidence * 100).toFixed(1) + "%";
-
-  if (confidence < 0.90) {
-    statusText("Hold the item clearly in front of camera.");
-    return;
-  }
-
-  const category = name.toLowerCase()
-    .replace(/[-_]/g," ")
-    .trim();
-
-  if (category.includes("background")) {
-
-    statusText("Show a plastic bottle or e-waste item.");
-
-  } else if (
-    category.includes("plastic") ||
-    category.includes("bottle")
-  ) {
-
-    award(10,"Plastic Bottle","tree");
-
-  } else if (
-    category.includes("e waste") ||
-    category.includes("ewaste") ||
-    category.includes("battery") ||
-    category.includes("electronic")
-  ) {
-
-    award(20,"E-Waste","energy");
-
-  } else {
-
-    statusText("Recognised: " + name);
-  }
-}
-
-
-// AWARD POINTS
-
-function award(points,label,effect) {
-
-  const now = Date.now();
-
-  if (now - lastAwardTime < 5000) return;
-
-  lastAwardTime = now;
-
-  score += points;
-
-  document.getElementById("score").innerText = score;
-
-  document.getElementById("effectMessage").innerText =
-    label + " detected! +" + points + " points!";
-
-  celebrate();
-
-  if (effect === "tree") showTree();
-
-  if (effect === "energy") showEnergy();
-
-  document.body.classList.add("healed");
-
-  statusText("Excellent! " + label + " detected!");
-}
-
-
-// TREE ANIMATION
-
-function showTree() {
-
-  machine.classList.remove("recycle");
-  energy.classList.remove("show");
-
-  tree.classList.remove("grow");
-  tree.classList.remove("sway");
-
-  void tree.offsetWidth;
-
-  tree.classList.add("grow");
-
-  setTimeout(() => {
-    tree.classList.add("sway");
-  },2300);
-}
-
-
-// E-WASTE ANIMATION
-
-function showEnergy() {
-
-  tree.classList.remove("sway","grow");
-
-  machine.classList.remove("recycle");
-
-  void machine.offsetWidth;
-
-  machine.classList.add("recycle");
-
-  energy.classList.remove("show");
-
-  void energy.offsetWidth;
-
-  energy.classList.add("show");
-}
-
-
-// CONFETTI ANIMATION
-
-function celebrate() {
-
-  const symbols = ["✨","🌿","⭐","♻️","💚"];
-
-  for(let i=0;i<24;i++) {
-
-    const p = document.createElement("span");
-
-    p.className = "particle";
-
-    p.innerText =
-      symbols[Math.floor(Math.random()*symbols.length)];
-
-    p.style.left = (45 + Math.random()*10) + "vw";
-
-    p.style.top = (42 + Math.random()*12) + "vh";
-
-    p.style.setProperty(
-      "--dx",
-      (Math.random()*360-180) + "px"
-    );
-
-    p.style.setProperty(
-      "--dy",
-      (Math.random()*-360-40) + "px"
-    );
-
-    document.body.appendChild(p);
-
-    setTimeout(() => p.remove(),1600);
-  }
-}
-
-
-// STATUS MESSAGE
-
-function statusText(message) {
-
-  document.getElementById("status").innerText = message;
-}
-
-
-// STOP CAMERA
-
-function stopApp() {
-
-  running = false;
-
-  if(frameId) cancelAnimationFrame(frameId);
-
-  if(webcam) {
-    webcam.stop();
-    webcam = null;
-  }
-
-  document.getElementById("webcam-container").innerText =
-    "Camera stopped";
-
-  startBtn.disabled = false;
-  stopBtn.disabled = true;
-
-  statusText("Camera stopped. Press START to play again.");
-}
-
-
-// RESET SCORE
-
-function resetScore() {
-
-  score = 0;
-
-  document.getElementById("score").innerText = "0";
-
-  document.getElementById("effectMessage").innerText =
-    "Score reset. Help the planet again!";
-
-  statusText("Score reset.");
-}
-
-
-// BUTTON EVENTS
-
-const startBtn = document.getElementById("startBtn");
-const stopBtn = document.getElementById("stopBtn");
-const resetBtn = document.getElementById("resetBtn");
-const tree = document.getElementById("tree");
-const machine = document.getElementById("machine");
-const energy = document.getElementById("energy");
-
-startBtn.addEventListener("click",startApp);
-stopBtn.addEventListener("click",stopApp);
-resetBtn.addEventListener("click",resetScore);
-
-window.addEventListener("beforeunload", () => {
-  if(webcam) webcam.stop();
-});
-
+// YOUR EXISTING TEACHABLE MACHINE MODEL — kept connected
+const MODEL_URL = "https://teachablemachine.withgoogle.com/models/TtI0zkQlZ/";
+let model=null,webcam=null,running=false,busy=false,score=0,items=0,lastAwardTime=0,frameId=null;
+let soundOn=true,audioCtx=null,launchUsed=false;
+const $=id=>document.getElementById(id);
+
+// ---------- CINEMATIC THREE.JS BACKGROUND ----------
+(function initSpace(){
+  const canvas=$('space'); if(!window.THREE)return;
+  const renderer=new THREE.WebGLRenderer({canvas,alpha:true,antialias:true});
+  renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+  const scene=new THREE.Scene(); const camera=new THREE.PerspectiveCamera(60,innerWidth/innerHeight,.1,1000);camera.position.z=55;
+  const group=new THREE.Group();scene.add(group);
+  const count=950,positions=new Float32Array(count*3),colors=new Float32Array(count*3);
+  for(let i=0;i<count;i++){const r=18+Math.random()*90,a=Math.random()*Math.PI*2,b=Math.acos(2*Math.random()-1);positions[i*3]=r*Math.sin(b)*Math.cos(a);positions[i*3+1]=r*Math.sin(b)*Math.sin(a);positions[i*3+2]=r*Math.cos(b);const g=.55+Math.random()*.45;colors[i*3]=.15;colors[i*3+1]=g;colors[i*3+2]=.42+Math.random()*.4;}
+  const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.BufferAttribute(positions,3));geo.setAttribute('color',new THREE.BufferAttribute(colors,3));
+  const stars=new THREE.Points(geo,new THREE.PointsMaterial({size:.23,vertexColors:true,transparent:true,opacity:.8}));group.add(stars);
+  const ring=new THREE.Mesh(new THREE.TorusGeometry(17,.035,8,180),new THREE.MeshBasicMaterial({color:0x4cffb1,transparent:true,opacity:.18}));ring.rotation.x=1.12;group.add(ring);
+  const ring2=new THREE.Mesh(new THREE.TorusGeometry(21,.025,8,180),new THREE.MeshBasicMaterial({color:0x63e8ff,transparent:true,opacity:.13}));ring2.rotation.x=.45;ring2.rotation.y=.5;group.add(ring2);
+  function resize(){renderer.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();}resize();addEventListener('resize',resize);
+  function animate(){requestAnimationFrame(animate);group.rotation.y+=.00055;stars.rotation.z+=.00012;ring.rotation.z+=.001;ring2.rotation.x+=.0004;renderer.render(scene,camera);}animate();
+})();
+
+// ---------- SOUND FX (generated locally; no audio files needed) ----------
+function tone(freq=440,duration=.14,type='sine',volume=.045,delay=0){if(!soundOn)return;try{audioCtx=audioCtx||new(window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==='suspended')audioCtx.resume();const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type=type;o.frequency.setValueAtTime(freq,audioCtx.currentTime+delay);g.gain.setValueAtTime(volume,audioCtx.currentTime+delay);g.gain.exponentialRampToValueAtTime(.001,audioCtx.currentTime+delay+duration);o.connect(g);g.connect(audioCtx.destination);o.start(audioCtx.currentTime+delay);o.stop(audioCtx.currentTime+delay+duration);}catch(e){}}
+function playSound(kind){if(!soundOn)return;if(kind==='start'){tone(220,.18,'sawtooth',.025);tone(440,.25,'sine',.04,.13);tone(660,.32,'sine',.04,.28);}else if(kind==='plastic'){tone(523,.15);tone(659,.15,'sine',.045,.12);tone(784,.32,'sine',.05,.24);}else if(kind==='ewaste'){tone(392,.16,'triangle');tone(587,.16,'triangle',.05,.13);tone(784,.2,'triangle',.05,.26);tone(988,.4,'sine',.05,.4);}else if(kind==='level'){[523,659,784,1046].forEach((f,i)=>tone(f,.35,'sine',.05,i*.13));}else if(kind==='click'){tone(330,.07,'sine',.02);}}
+$('soundBtn').addEventListener('click',()=>{soundOn=!soundOn;$('soundBtn').textContent=soundOn?'🔊 SOUND ON':'🔇 SOUND OFF';if(soundOn)playSound('start');});
+
+function setStatus(msg){$('status').textContent=msg;}
+function toast(msg){$('toast').textContent=msg;$('toast').classList.add('show');setTimeout(()=>$('toast').classList.remove('show'),2100);}
+function launchQuest(){playSound('start');$('game').scrollIntoView({behavior:'smooth',block:'start'});$('status').textContent='Quest portal activated. Start the AI camera when ready.';launchUsed=true;}
+$('launchBtn').addEventListener('click',launchQuest);$('howBtn').addEventListener('click',()=>$('how').scrollIntoView({behavior:'smooth'}));
+
+// ---------- AI CAMERA ----------
+async function startApp(){if(running)return;$('startBtn').disabled=true;setStatus('Loading AI vision model...');playSound('click');try{
+  if(!model)model=await tmImage.load(MODEL_URL+'model.json',MODEL_URL+'metadata.json');
+  setStatus('AI online. Requesting camera access...');webcam=new tmImage.Webcam(320,320,false);await webcam.setup({facingMode:'environment'});await webcam.play();
+  $('webcam-container').innerHTML='';$('webcam-container').appendChild(webcam.canvas);running=true;$('stopBtn').disabled=false;setStatus('Scanner online! Show a plastic bottle or e-waste item.');loop();
+ }catch(error){console.error(error);setStatus('Could not start camera/model. Allow camera access and check internet.');$('startBtn').disabled=false;if(webcam){try{webcam.stop()}catch(e){}webcam=null;}}}
+async function loop(){if(!running||!webcam)return;webcam.update();if(!busy){busy=true;try{await predictWaste()}catch(e){console.error(e);setStatus('AI detection issue. Please restart the camera.')}busy=false;}if(running)frameId=requestAnimationFrame(loop);}
+async function predictWaste(){const predictions=await model.predict(webcam.canvas);const best=predictions.reduce((a,b)=>a.probability>b.probability?a:b);const name=best.className.trim(),confidence=best.probability;$('prediction').textContent='AI Detection: '+name;$('confidence').textContent='Confidence: '+(confidence*100).toFixed(1)+'%';if(confidence<.90){setStatus('Hold the item clearly in front of the camera.');return;}const category=name.toLowerCase().replace(/[-_]/g,' ').trim();if(category.includes('background')){setStatus('Show a plastic bottle or e-waste item.');}else if(category.includes('plastic')||category.includes('bottle')){award(10,'Plastic Bottle','tree');}else if(category.includes('e waste')||category.includes('ewaste')||category.includes('battery')||category.includes('electronic')){award(20,'E-Waste','energy');}else{setStatus('Recognised: '+name+'. Try a mission item.');}}
+function award(points,label,effect){const now=Date.now();if(now-lastAwardTime<5000)return;lastAwardTime=now;score+=points;items++;$('score').textContent=score;$('items').textContent=items;$('effectMessage').textContent=label+' detected! +'+points+' green XP. Planet restoration progressing!';playSound(effect==='tree'?'plastic':'ewaste');celebrate();if(effect==='tree')showTree();else showEnergy();updateLevel();setStatus('Excellent! '+label+' detected. +'+points+' points!');toast('+'+points+' XP · '+label.toUpperCase()+' RECOVERED');}
+function showTree(){$('machine').classList.remove('active');$('tree').classList.remove('grow');void $('tree').offsetWidth;$('tree').classList.add('grow');}
+function showEnergy(){$('tree').classList.remove('grow');$('machine').classList.remove('active');void $('machine').offsetWidth;$('machine').classList.add('active');const host=$('energy');host.innerHTML='';['⚡','✨','♻️','🌟','⚡','💚'].forEach((symbol,i)=>{const el=document.createElement('i');el.textContent=symbol;const angle=i*Math.PI*2/6;el.style.setProperty('--x',Math.cos(angle)*125+'px');el.style.setProperty('--y',Math.sin(angle)*125+'px');host.appendChild(el);});setTimeout(()=>host.innerHTML='',1500);}
+function updateLevel(){const level=Math.min(5,Math.floor(items/5)+1);$('level').textContent=String(level).padStart(2,'0');$('levelPill').textContent='LEVEL '+String(level).padStart(2,'0')+' · '+(level>=5?'PLANET HERO':level>=3?'ECO RANGER':'ROOKIE');const progress=Math.min(items%5,5);$('progressBar').style.width=(items>=5?100:progress*20)+'%';$('progressText').textContent=items>=5?'Mission milestone achieved! You are an Eco Guardian.':progress+' / 5 successful scans to reach Eco Guardian level.';if(items>=5&&!$('achievement').classList.contains('show')){$('achievement').classList.add('show');playSound('level');toast('🏆 ECO GUARDIAN BADGE UNLOCKED!');}}
+function celebrate(){const symbols=['✨','🌿','⭐','♻️','💚','⚡'];for(let i=0;i<34;i++){const p=document.createElement('span');p.className='confetti';p.textContent=symbols[Math.floor(Math.random()*symbols.length)];p.style.left=(45+Math.random()*10)+'vw';p.style.top=(42+Math.random()*12)+'vh';p.style.setProperty('--dx',(Math.random()*460-230)+'px');p.style.setProperty('--dy',(Math.random()*-460-40)+'px');document.body.appendChild(p);setTimeout(()=>p.remove(),1800);}}
+function stopApp(){running=false;if(frameId)cancelAnimationFrame(frameId);if(webcam){try{webcam.stop()}catch(e){}webcam=null;}$('webcam-container').innerHTML='<div class="placeholder">📷<br><b>SCANNER PAUSED</b><br>Press START CAMERA to resume your mission.</div>';$('startBtn').disabled=false;$('stopBtn').disabled=true;setStatus('Camera stopped. Your score is saved until reset.');}
+function resetScore(){score=0;items=0;lastAwardTime=0;$('score').textContent='0';$('items').textContent='0';$('level').textContent='01';$('levelPill').textContent='LEVEL 01 · ROOKIE';$('progressBar').style.width='0%';$('progressText').textContent='0 / 5 successful scans to reach Eco Guardian level.';$('achievement').classList.remove('show');$('tree').classList.remove('grow');$('machine').classList.remove('active');$('effectMessage').textContent='Your mission can bring this world back to life.';setStatus('Score reset. Ready for a new mission.');playSound('click');}
+$('startBtn').addEventListener('click',startApp);$('stopBtn').addEventListener('click',stopApp);$('resetBtn').addEventListener('click',resetScore);addEventListener('beforeunload',()=>{if(webcam)webcam.stop();});
 </script>
-
 </body>
 </html>
