@@ -1,91 +1,378 @@
-HTML
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Green Skills AR Quest</title>
-  <!-- Load A-Frame for 3D/AR -->
-  <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
-  <!-- Load Teachable Machine libraries -->
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.3.1/dist/tf.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8/dist/teachablemachine-image.min.js"></script>
-  <style>
-    #webcam-container { position: absolute; top: 0; left: 0; z-index: -1; width: 100vw; height: 100vh; overflow: hidden; }
-    canvas { width: 100%; height: 100%; object-fit: cover; }
-    #score-board { position: absolute; top: 20px; left: 20px; color: white; font-size: 24px; font-weight: bold; font-family: Arial; z-index: 10; text-shadow: 2px 2px 4px #000; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Green Skills AR Quest</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.3.1/dist/tf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8.3/dist/teachablemachine-image.min.js"></script>
+
+<style>
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: linear-gradient(135deg,#063b28,#12804b);
+  color: white;
+  text-align: center;
+  min-height: 100vh;
+}
+
+header {
+  padding: 22px 10px;
+}
+
+header h1 {
+  margin: 5px;
+  font-size: 27px;
+}
+
+header p {
+  color: #d4f5df;
+}
+
+.container {
+  width: 92%;
+  max-width: 650px;
+  margin: auto;
+}
+
+.score-card {
+  background: #ffffff;
+  color: #14532d;
+  border-radius: 15px;
+  padding: 15px;
+  margin: 12px 0;
+  font-size: 22px;
+  font-weight: bold;
+}
+
+.camera-card {
+  background: #092c20;
+  border: 2px solid #70d99a;
+  border-radius: 18px;
+  padding: 12px;
+  min-height: 260px;
+}
+
+#webcam-container canvas {
+  width: 100%;
+  max-width: 420px;
+  height: auto;
+  border-radius: 12px;
+}
+
+#webcam-container video {
+  width: 100%;
+  max-width: 420px;
+  border-radius: 12px;
+}
+
+button {
+  padding: 13px 22px;
+  margin: 9px;
+  border: none;
+  border-radius: 25px;
+  background: #a3e635;
+  color: #173b16;
+  font-weight: bold;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.5;
+}
+
+#status {
+  margin: 15px;
+  font-size: 18px;
+  font-weight: bold;
+  min-height: 28px;
+}
+
+#result {
+  background: #ffffff;
+  color: #14532d;
+  border-radius: 12px;
+  padding: 14px;
+  margin: 12px 0;
+}
+
+#effect {
+  font-size: 85px;
+  min-height: 105px;
+  animation: grow 1.5s ease-in-out infinite alternate;
+}
+
+@keyframes grow {
+  from { transform: scale(0.8); }
+  to { transform: scale(1.15); }
+}
+
+.instructions {
+  text-align: left;
+  background: rgba(255,255,255,0.12);
+  border-radius: 14px;
+  padding: 16px;
+  margin: 15px 0;
+}
+
+footer {
+  padding: 20px;
+  color: #d4f5df;
+  font-size: 13px;
+}
+</style>
 </head>
-<body style="margin: 0; overflow: hidden;" onload="init()">
-  
-  <div id="score-board">Score: <span id="score">0</span></div>
-  <div id="webcam-container"></div>
 
-  <!-- A-Frame Scene (Transparent background to show webcam) -->
-  <a-scene alpha="true" vr-mode-ui="enabled: false">
-    <a-assets>
-      <a-asset-item id="treeModel" src="tree.glb"></a-asset-item>
-    </a-assets>
-    
-    <!-- This tree is hidden by default. It appears when plastic is detected. -->
-    <a-entity id="ar-tree" gltf-model="#treeModel" position="0 -1 -3" scale="0.5 0.5 0.5" visible="false" 
-              animation="property: scale; from: 0 0 0; to: 0.5 0.5 0.5; dur: 1000; startEvents: grow">
-    </a-entity>
-    
-    <a-camera position="0 0 0"></a-camera>
-  </a-scene>
+<body>
 
-  <script>
-    https://teachablemachine.withgoogle.com/models/TtI0zkQlZ/
-const URL = "https://teachablemachine.withgoogle.com/models/TtI0zkQlZ/";
-    let model, webcam, maxPredictions;
-    let score = 0;
-    let isHealed = false;
+<header>
+  <h1>🌱 GREEN SKILLS AR QUEST</h1>
+  <p>AI-Powered Waste Identification & Environmental Protection</p>
+</header>
 
-    async function init() {
-        const modelURL = URL + "model.json";
-        const metadataURL = URL + "metadata.json";
+<div class="container">
 
-        model = await tmImage.load(modelURL, metadataURL);
-        maxPredictions = model.getTotalClasses();
+  <div class="score-card">
+    🏆 Your Green Score:
+    <span id="score">0</span>
+  </div>
 
-        // Setup webcam
-        const flip = false; 
-        webcam = new tmImage.Webcam(640, 480, flip);
-        await webcam.setup({ facingMode: "environment" }); // Use back camera
-        await webcam.play();
-        window.requestAnimationFrame(loop);
+  <div class="camera-card">
+    <h3>📷 AI Waste Scanner</h3>
+    <div id="webcam-container">
+      Camera will appear here
+    </div>
+  </div>
 
-        document.getElementById("webcam-container").appendChild(webcam.canvas);
+  <button id="startBtn" onclick="startApp()">
+    START AI CAMERA
+  </button>
+
+  <button id="stopBtn" onclick="stopApp()" disabled>
+    STOP CAMERA
+  </button>
+
+  <div id="status">
+    Press START AI CAMERA to begin.
+  </div>
+
+  <div id="result">
+    <h3>AI Detection Result</h3>
+    <p id="prediction">Waiting for object...</p>
+    <p id="confidence">Confidence: --</p>
+  </div>
+
+  <div id="effect">🌍</div>
+
+  <div class="instructions">
+    <h3>♻️ How to Play</h3>
+    <p>🧴 Show a plastic bottle: Earn 10 points.</p>
+    <p>🔋 Show e-waste: Earn 20 points.</p>
+    <p>🌳 Help protect the environment!</p>
+    <p>💡 Keep the object in front of the camera.</p>
+  </div>
+
+</div>
+
+<footer>
+  Green Skills AR Quest | AI + AR + Sustainability
+  <br>
+  Educational Project
+</footer>
+
+<script>
+
+// YOUR TEACHABLE MACHINE MODEL
+const MODEL_URL =
+"https://teachablemachine.withgoogle.com/models/TtI0zkQlZ/";
+
+let model;
+let webcam;
+let score = 0;
+let running = false;
+let busy = false;
+let lastAwardTime = 0;
+let animationFrame = null;
+
+const startBtn = document.getElementById("startBtn");
+const stopBtn = document.getElementById("stopBtn");
+
+function showStatus(message) {
+  document.getElementById("status").innerText = message;
+}
+
+// START CAMERA AND LOAD MODEL
+async function startApp() {
+
+  if (running) return;
+
+  try {
+
+    showStatus("Loading AI model...");
+
+    startBtn.disabled = true;
+
+    const modelURL = MODEL_URL + "model.json";
+    const metadataURL = MODEL_URL + "metadata.json";
+
+    model = await tmImage.load(modelURL, metadataURL);
+
+    showStatus("AI model loaded. Starting camera...");
+
+    webcam = new tmImage.Webcam(320, 320, false);
+
+    await webcam.setup({
+      facingMode: "environment"
+    });
+
+    await webcam.play();
+
+    const cameraContainer =
+      document.getElementById("webcam-container");
+
+    cameraContainer.innerHTML = "";
+    cameraContainer.appendChild(webcam.canvas);
+
+    running = true;
+    startBtn.disabled = true;
+    stopBtn.disabled = false;
+
+    showStatus("Camera ready! Show a waste item.");
+
+    loop();
+
+  } catch (error) {
+
+    console.error(error);
+
+    showStatus(
+      "Unable to start. Check internet, model link and camera permission."
+    );
+
+    startBtn.disabled = false;
+  }
+}
+
+// AI DETECTION LOOP
+async function loop() {
+
+  if (!running || !webcam) return;
+
+  webcam.update();
+
+  if (!busy) {
+    busy = true;
+
+    try {
+      await predictWaste();
+    } catch (error) {
+      console.error(error);
+      showStatus("Detection error. Please restart the camera.");
     }
 
-    async function loop() {
-        webcam.update();
-        await predict();
-        window.requestAnimationFrame(loop);
-    }
+    busy = false;
+  }
 
-    async function predict() {
-        const prediction = await model.predict(webcam.canvas);
-        const treeEntity = document.getElementById('ar-tree');
-        
-        for (let i = 0; i < maxPredictions; i++) {
-            // If the AI is over 90% sure it sees a Plastic Bottle
-            if (prediction[i].className === "Plastic Bottle" && prediction[i].probability.toFixed(2) > 0.90) {
-                if (!isHealed) {
-                    treeEntity.setAttribute('visible', 'true');
-                    treeEntity.emit('grow'); // Trigger A-Frame growth animation
-                    score += 10;
-                    document.getElementById('score').innerText = score;
-                    isHealed = true;
-                    
-                    // Reset after 5 seconds to play again
-                    setTimeout(() => {
-                        treeEntity.setAttribute('visible', 'false');
-                        isHealed = false;
-                    }, 5000);
-                }
-            }
-        }
-    }
-  </script>
+  if (running) {
+    animationFrame = requestAnimationFrame(loop);
+  }
+}
+
+// IDENTIFY WASTE
+async function predictWaste() {
+
+  const predictions = await model.predict(webcam.canvas);
+
+  let best = predictions.reduce((a, b) =>
+    a.probability > b.probability ? a : b
+  );
+
+  const item = best.className;
+  const confidenceValue = best.probability;
+
+  document.getElementById("prediction").innerText =
+    "Detected: " + item;
+
+  document.getElementById("confidence").innerText =
+    "Confidence: " + (confidenceValue * 100).toFixed(1) + "%";
+
+  if (confidenceValue < 0.90) {
+    showStatus("Keep the waste item clearly in front of camera.");
+    return;
+  }
+
+  if (item.toLowerCase().includes("background")) {
+    showStatus("Show a plastic bottle or e-waste item.");
+    return;
+  }
+
+  if (item === "Plastic Bottle") {
+    awardPoints(10, "PLASTIC BOTTLE", "🌳");
+  }
+
+  else if (item === "E-Waste") {
+    awardPoints(20, "E-WASTE", "⚡🌱");
+  }
+
+  else {
+    showStatus("Recognised: " + item);
+  }
+}
+
+// AWARD POINTS ONLY ONCE PER COOLDOWN
+function awardPoints(points, wasteType, visual) {
+
+  const now = Date.now();
+
+  if (now - lastAwardTime < 5000) return;
+
+  lastAwardTime = now;
+
+  score += points;
+
+  document.getElementById("score").innerText = score;
+
+  document.getElementById("effect").innerText = visual;
+
+  showStatus(
+    "Excellent! " + wasteType +
+    " detected. You earned " + points + " points!"
+  );
+}
+
+// STOP CAMERA
+function stopApp() {
+
+  running = false;
+
+  if (animationFrame !== null) {
+    cancelAnimationFrame(animationFrame);
+  }
+
+  if (webcam) {
+    webcam.stop();
+    webcam = null;
+  }
+
+  document.getElementById("webcam-container").innerHTML =
+    "Camera stopped";
+
+  startBtn.disabled = false;
+  stopBtn.disabled = true;
+
+  showStatus("Camera stopped. Press START to play again.");
+
+}
+
+</script>
+
 </body>
 </html>
