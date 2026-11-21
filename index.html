@@ -3,82 +3,62 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>Green Skills AR Quest</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.3.1/dist/tf.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8.3/dist/teachablemachine-image.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8/dist/teachablemachine-image.min.js"></script>
 
 <style>
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
 body {
   margin: 0;
-  font-family: Arial, sans-serif;
-  background: linear-gradient(135deg,#063b28,#12804b);
-  color: white;
-  text-align: center;
   min-height: 100vh;
+  font-family: Arial, sans-serif;
+  text-align: center;
+  color: white;
+  background: linear-gradient(#8ed7a2, #e2f5c9, #276b3b);
+}
+
+body.healed {
+  background: linear-gradient(#63c9ed, #c9f2c5, #16733d);
 }
 
 header {
-  padding: 22px 10px;
+  padding: 20px 10px;
+  color: #08391f;
 }
 
 header h1 {
-  margin: 5px;
-  font-size: 27px;
-}
-
-header p {
-  color: #d4f5df;
+  font-size: 30px;
 }
 
 .container {
-  width: 92%;
-  max-width: 650px;
+  width: 94%;
+  max-width: 700px;
   margin: auto;
 }
 
-.score-card {
-  background: #ffffff;
-  color: #14532d;
-  border-radius: 15px;
+.panel {
+  background: rgba(5,48,27,.92);
+  border: 2px solid white;
+  border-radius: 18px;
   padding: 15px;
   margin: 12px 0;
-  font-size: 22px;
+}
+
+.score {
+  font-size: 26px;
   font-weight: bold;
-}
-
-.camera-card {
-  background: #092c20;
-  border: 2px solid #70d99a;
-  border-radius: 18px;
-  padding: 12px;
-  min-height: 260px;
-}
-
-#webcam-container canvas {
-  width: 100%;
-  max-width: 420px;
-  height: auto;
-  border-radius: 12px;
-}
-
-#webcam-container video {
-  width: 100%;
-  max-width: 420px;
-  border-radius: 12px;
+  color: #eaffc9;
 }
 
 button {
-  padding: 13px 22px;
-  margin: 9px;
   border: none;
   border-radius: 25px;
-  background: #a3e635;
+  padding: 13px 20px;
+  margin: 7px;
+  background: #b7f36b;
   color: #173b16;
   font-weight: bold;
   font-size: 16px;
@@ -86,47 +66,212 @@ button {
 }
 
 button:disabled {
-  opacity: 0.5;
+  opacity: .5;
+}
+
+#webcam-container canvas {
+  width: 100%;
+  max-width: 420px;
+  border-radius: 14px;
+  border: 3px solid #d7ffb0;
 }
 
 #status {
-  margin: 15px;
-  font-size: 18px;
+  min-height: 30px;
   font-weight: bold;
-  min-height: 28px;
+  margin: 12px;
 }
 
-#result {
-  background: #ffffff;
-  color: #14532d;
-  border-radius: 12px;
-  padding: 14px;
-  margin: 12px 0;
+#prediction {
+  font-size: 18px;
 }
 
-#effect {
-  font-size: 85px;
-  min-height: 105px;
-  animation: grow 1.5s ease-in-out infinite alternate;
+#confidence {
+  font-size: 14px;
 }
 
-@keyframes grow {
-  from { transform: scale(0.8); }
-  to { transform: scale(1.15); }
+.scene {
+  position: relative;
+  height: 245px;
+  overflow: hidden;
+  border-radius: 16px;
+  background: linear-gradient(#79c8e8 0 62%, #7fbd55 62%);
+  border: 2px solid #d8ffb3;
+  margin-top: 12px;
+}
+
+.sun {
+  position: absolute;
+  width: 55px;
+  height: 55px;
+  border-radius: 50%;
+  background: #ffe98b;
+  top: 20px;
+  right: 30px;
+  box-shadow: 0 0 28px #fff2a6;
+}
+
+.cloud {
+  position: absolute;
+  top: 40px;
+  left: -130px;
+  font-size: 42px;
+  animation: cloud 22s linear infinite;
+}
+
+.cloud.two {
+  top: 80px;
+  animation-delay: -11s;
+}
+
+.hills {
+  position: absolute;
+  bottom: 0;
+  left: -5%;
+  width: 110%;
+  height: 90px;
+  background: #4b9b48;
+  border-radius: 50% 50% 0 0;
+}
+
+.hills:after {
+  content: "";
+  position: absolute;
+  right: -4%;
+  bottom: -12px;
+  width: 65%;
+  height: 80px;
+  background: #287c3d;
+  border-radius: 50% 50% 0 0;
+}
+
+.tree {
+  position: absolute;
+  bottom: 42px;
+  left: 50%;
+  transform: translateX(-50%) scale(.1);
+  opacity: 0;
+  font-size: 110px;
+  z-index: 3;
+}
+
+.tree.grow {
+  animation: treeGrow 2.2s ease-out forwards;
+}
+
+.tree.sway {
+  animation: treeSway 3s ease-in-out infinite alternate;
+}
+
+.machine {
+  position: absolute;
+  bottom: 22px;
+  left: 50%;
+  transform: translateX(-50%) scale(.5);
+  opacity: 0;
+  font-size: 80px;
+}
+
+.machine.recycle {
+  animation: machineIn .6s ease-out forwards,
+             machineShake .5s 3 .6s;
+}
+
+.energy {
+  position: absolute;
+  inset: 0;
+  display: none;
+  pointer-events: none;
+}
+
+.energy.show {
+  display: block;
+}
+
+.energy span {
+  position: absolute;
+  left: 50%;
+  top: 48%;
+  font-size: 30px;
+  animation: zap 1.2s ease-out forwards;
+}
+
+.energy span:nth-child(2) { animation-delay: .12s; }
+.energy span:nth-child(3) { animation-delay: .24s; }
+.energy span:nth-child(4) { animation-delay: .36s; }
+
+.particle {
+  position: fixed;
+  z-index: 20;
+  pointer-events: none;
+  font-size: 22px;
+  animation: confetti 1.5s ease-out forwards;
 }
 
 .instructions {
   text-align: left;
-  background: rgba(255,255,255,0.12);
-  border-radius: 14px;
-  padding: 16px;
-  margin: 15px 0;
+  line-height: 1.7;
 }
 
-footer {
-  padding: 20px;
-  color: #d4f5df;
-  font-size: 13px;
+@keyframes cloud {
+  from { left: -140px; }
+  to { left: 110%; }
+}
+
+@keyframes treeGrow {
+  0% {
+    transform: translateX(-50%) scale(.05);
+    opacity: 0;
+  }
+  65% {
+    transform: translateX(-50%) scale(1.15);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(-50%) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes treeSway {
+  from { rotate: -3deg; }
+  to { rotate: 3deg; }
+}
+
+@keyframes machineIn {
+  to {
+    transform: translateX(-50%) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes machineShake {
+  0%,100% { translate: 0 0; }
+  25% { translate: -7px 0; }
+  75% { translate: 7px 0; }
+}
+
+@keyframes zap {
+  0% {
+    transform: translate(-50%,-50%) scale(.2);
+    opacity: 0;
+  }
+  35% { opacity: 1; }
+  100% {
+    transform: translate(-50%,-150%) scale(1.7);
+    opacity: 0;
+  }
+}
+
+@keyframes confetti {
+  0% {
+    transform: translate(0,0);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--dx),var(--dy)) rotate(500deg);
+    opacity: 0;
+  }
 }
 </style>
 </head>
@@ -135,99 +280,123 @@ footer {
 
 <header>
   <h1>🌱 GREEN SKILLS AR QUEST</h1>
-  <p>AI-Powered Waste Identification & Environmental Protection</p>
+  <p>Scan Waste. Earn Points. Save the Planet!</p>
 </header>
 
 <div class="container">
 
-  <div class="score-card">
-    🏆 Your Green Score:
-    <span id="score">0</span>
+<section class="panel">
+
+  <div class="score">
+    🏆 Green Score: <span id="score">0</span>
   </div>
-
-  <div class="camera-card">
-    <h3>📷 AI Waste Scanner</h3>
-    <div id="webcam-container">
-      Camera will appear here
-    </div>
-  </div>
-
-  <button id="startBtn" onclick="startApp()">
-    START AI CAMERA
-  </button>
-
-  <button id="stopBtn" onclick="stopApp()" disabled>
-    STOP CAMERA
-  </button>
 
   <div id="status">
     Press START AI CAMERA to begin.
   </div>
 
-  <div id="result">
-    <h3>AI Detection Result</h3>
-    <p id="prediction">Waiting for object...</p>
-    <p id="confidence">Confidence: --</p>
+  <div id="webcam-container">
+    Camera preview will appear here
   </div>
 
-  <div id="effect">🌍</div>
+  <p id="prediction">AI Detection: Waiting</p>
+  <p id="confidence">Confidence: --</p>
 
-  <div class="instructions">
-    <h3>♻️ How to Play</h3>
-    <p>🧴 Show a plastic bottle: Earn 10 points.</p>
-    <p>🔋 Show e-waste: Earn 20 points.</p>
-    <p>🌳 Help protect the environment!</p>
-    <p>💡 Keep the object in front of the camera.</p>
+  <button id="startBtn">▶️ START AI CAMERA</button>
+  <button id="stopBtn" disabled>■ STOP CAMERA</button>
+  <button id="resetBtn">↻ RESET SCORE</button>
+
+</section>
+
+<section class="panel">
+
+  <h2>🌍 YOUR GREEN WORLD</h2>
+
+  <div class="scene">
+
+    <div class="sun"></div>
+
+    <div class="cloud">☁️</div>
+    <div class="cloud two">☁️</div>
+
+    <div class="hills"></div>
+
+    <div class="tree" id="tree">🌳</div>
+
+    <div class="machine" id="machine">♻️</div>
+
+    <div class="energy" id="energy">
+      <span>⚡</span>
+      <span>✨</span>
+      <span>⚡</span>
+      <span>🌟</span>
+    </div>
+
   </div>
+
+  <p id="effectMessage">
+    Your actions can make the planet greener!
+  </p>
+
+</section>
+
+<section class="panel instructions">
+
+  <h3>♻️ HOW TO PLAY</h3>
+
+  <p>🧴 Plastic Bottle: +10 Points</p>
+
+  <p>🔋 E-Waste: +20 Points</p>
+
+  <p>🌳 Grow a tree and restore nature.</p>
+
+  <p>⚡ Recycle e-waste and create green energy.</p>
+
+</section>
 
 </div>
 
 <footer>
   Green Skills AR Quest | AI + AR + Sustainability
-  <br>
-  Educational Project
 </footer>
 
 <script>
 
-// YOUR TEACHABLE MACHINE MODEL
+// TEACHABLE MACHINE MODEL LINK
+
 const MODEL_URL =
 "https://teachablemachine.withgoogle.com/models/TtI0zkQlZ/";
 
-let model;
-let webcam;
-let score = 0;
+let model = null;
+let webcam = null;
 let running = false;
 let busy = false;
+let score = 0;
 let lastAwardTime = 0;
-let animationFrame = null;
+let frameId = null;
 
-const startBtn = document.getElementById("startBtn");
-const stopBtn = document.getElementById("stopBtn");
 
-function showStatus(message) {
-  document.getElementById("status").innerText = message;
-}
+// START APPLICATION
 
-// START CAMERA AND LOAD MODEL
 async function startApp() {
 
   if (running) return;
 
+  startBtn.disabled = true;
+  statusText("Loading AI Model...");
+
   try {
 
-    showStatus("Loading AI model...");
+    if (!model) {
+      model = await tmImage.load(
+        MODEL_URL + "model.json",
+        MODEL_URL + "metadata.json"
+      );
+    }
 
-    startBtn.disabled = true;
+    statusText("AI loaded. Starting camera...");
 
-    const modelURL = MODEL_URL + "model.json";
-    const metadataURL = MODEL_URL + "metadata.json";
-
-    model = await tmImage.load(modelURL, metadataURL);
-
-    showStatus("AI model loaded. Starting camera...");
-
-    webcam = new tmImage.Webcam(320, 320, false);
+    webcam = new tmImage.Webcam(320,320,false);
 
     await webcam.setup({
       facingMode: "environment"
@@ -235,33 +404,37 @@ async function startApp() {
 
     await webcam.play();
 
-    const cameraContainer =
-      document.getElementById("webcam-container");
+    document.getElementById("webcam-container").innerHTML = "";
 
-    cameraContainer.innerHTML = "";
-    cameraContainer.appendChild(webcam.canvas);
+    document.getElementById("webcam-container")
+      .appendChild(webcam.canvas);
 
     running = true;
-    startBtn.disabled = true;
+
     stopBtn.disabled = false;
 
-    showStatus("Camera ready! Show a waste item.");
+    statusText("Camera ready! Show a waste item.");
 
     loop();
 
-  } catch (error) {
+  } catch(error) {
 
     console.error(error);
 
-    showStatus(
-      "Unable to start. Check internet, model link and camera permission."
-    );
+    statusText("Camera or model error. Check permissions and internet.");
 
     startBtn.disabled = false;
+
+    if (webcam) {
+      try { webcam.stop(); } catch(e) {}
+      webcam = null;
+    }
   }
 }
 
-// AI DETECTION LOOP
+
+// DETECTION LOOP
+
 async function loop() {
 
   if (!running || !webcam) return;
@@ -269,66 +442,83 @@ async function loop() {
   webcam.update();
 
   if (!busy) {
+
     busy = true;
 
     try {
       await predictWaste();
-    } catch (error) {
+    } catch(error) {
       console.error(error);
-      showStatus("Detection error. Please restart the camera.");
+      statusText("Detection error. Restart the camera.");
     }
 
     busy = false;
   }
 
   if (running) {
-    animationFrame = requestAnimationFrame(loop);
+    frameId = requestAnimationFrame(loop);
   }
 }
 
-// IDENTIFY WASTE
+
+// AI PREDICTION
+
 async function predictWaste() {
 
   const predictions = await model.predict(webcam.canvas);
 
-  let best = predictions.reduce((a, b) =>
+  const best = predictions.reduce((a,b) =>
     a.probability > b.probability ? a : b
   );
 
-  const item = best.className;
-  const confidenceValue = best.probability;
+  const name = best.className.trim();
+  const confidence = best.probability;
 
   document.getElementById("prediction").innerText =
-    "Detected: " + item;
+    "AI Detection: " + name;
 
   document.getElementById("confidence").innerText =
-    "Confidence: " + (confidenceValue * 100).toFixed(1) + "%";
+    "Confidence: " + (confidence * 100).toFixed(1) + "%";
 
-  if (confidenceValue < 0.90) {
-    showStatus("Keep the waste item clearly in front of camera.");
+  if (confidence < 0.90) {
+    statusText("Hold the item clearly in front of camera.");
     return;
   }
 
-  if (item.toLowerCase().includes("background")) {
-    showStatus("Show a plastic bottle or e-waste item.");
-    return;
-  }
+  const category = name.toLowerCase()
+    .replace(/[-_]/g," ")
+    .trim();
 
-  if (item === "Plastic Bottle") {
-    awardPoints(10, "PLASTIC BOTTLE", "🌳");
-  }
+  if (category.includes("background")) {
 
-  else if (item === "E-Waste") {
-    awardPoints(20, "E-WASTE", "⚡🌱");
-  }
+    statusText("Show a plastic bottle or e-waste item.");
 
-  else {
-    showStatus("Recognised: " + item);
+  } else if (
+    category.includes("plastic") ||
+    category.includes("bottle")
+  ) {
+
+    award(10,"Plastic Bottle","tree");
+
+  } else if (
+    category.includes("e waste") ||
+    category.includes("ewaste") ||
+    category.includes("battery") ||
+    category.includes("electronic")
+  ) {
+
+    award(20,"E-Waste","energy");
+
+  } else {
+
+    statusText("Recognised: " + name);
   }
 }
 
-// AWARD POINTS ONLY ONCE PER COOLDOWN
-function awardPoints(points, wasteType, visual) {
+
+// AWARD POINTS
+
+function award(points,label,effect) {
 
   const now = Date.now();
 
@@ -340,37 +530,159 @@ function awardPoints(points, wasteType, visual) {
 
   document.getElementById("score").innerText = score;
 
-  document.getElementById("effect").innerText = visual;
+  document.getElementById("effectMessage").innerText =
+    label + " detected! +" + points + " points!";
 
-  showStatus(
-    "Excellent! " + wasteType +
-    " detected. You earned " + points + " points!"
-  );
+  celebrate();
+
+  if (effect === "tree") showTree();
+
+  if (effect === "energy") showEnergy();
+
+  document.body.classList.add("healed");
+
+  statusText("Excellent! " + label + " detected!");
 }
 
+
+// TREE ANIMATION
+
+function showTree() {
+
+  machine.classList.remove("recycle");
+  energy.classList.remove("show");
+
+  tree.classList.remove("grow");
+  tree.classList.remove("sway");
+
+  void tree.offsetWidth;
+
+  tree.classList.add("grow");
+
+  setTimeout(() => {
+    tree.classList.add("sway");
+  },2300);
+}
+
+
+// E-WASTE ANIMATION
+
+function showEnergy() {
+
+  tree.classList.remove("sway","grow");
+
+  machine.classList.remove("recycle");
+
+  void machine.offsetWidth;
+
+  machine.classList.add("recycle");
+
+  energy.classList.remove("show");
+
+  void energy.offsetWidth;
+
+  energy.classList.add("show");
+}
+
+
+// CONFETTI ANIMATION
+
+function celebrate() {
+
+  const symbols = ["✨","🌿","⭐","♻️","💚"];
+
+  for(let i=0;i<24;i++) {
+
+    const p = document.createElement("span");
+
+    p.className = "particle";
+
+    p.innerText =
+      symbols[Math.floor(Math.random()*symbols.length)];
+
+    p.style.left = (45 + Math.random()*10) + "vw";
+
+    p.style.top = (42 + Math.random()*12) + "vh";
+
+    p.style.setProperty(
+      "--dx",
+      (Math.random()*360-180) + "px"
+    );
+
+    p.style.setProperty(
+      "--dy",
+      (Math.random()*-360-40) + "px"
+    );
+
+    document.body.appendChild(p);
+
+    setTimeout(() => p.remove(),1600);
+  }
+}
+
+
+// STATUS MESSAGE
+
+function statusText(message) {
+
+  document.getElementById("status").innerText = message;
+}
+
+
 // STOP CAMERA
+
 function stopApp() {
 
   running = false;
 
-  if (animationFrame !== null) {
-    cancelAnimationFrame(animationFrame);
-  }
+  if(frameId) cancelAnimationFrame(frameId);
 
-  if (webcam) {
+  if(webcam) {
     webcam.stop();
     webcam = null;
   }
 
-  document.getElementById("webcam-container").innerHTML =
+  document.getElementById("webcam-container").innerText =
     "Camera stopped";
 
   startBtn.disabled = false;
   stopBtn.disabled = true;
 
-  showStatus("Camera stopped. Press START to play again.");
-
+  statusText("Camera stopped. Press START to play again.");
 }
+
+
+// RESET SCORE
+
+function resetScore() {
+
+  score = 0;
+
+  document.getElementById("score").innerText = "0";
+
+  document.getElementById("effectMessage").innerText =
+    "Score reset. Help the planet again!";
+
+  statusText("Score reset.");
+}
+
+
+// BUTTON EVENTS
+
+const startBtn = document.getElementById("startBtn");
+const stopBtn = document.getElementById("stopBtn");
+const resetBtn = document.getElementById("resetBtn");
+const tree = document.getElementById("tree");
+const machine = document.getElementById("machine");
+const energy = document.getElementById("energy");
+
+startBtn.addEventListener("click",startApp);
+stopBtn.addEventListener("click",stopApp);
+resetBtn.addEventListener("click",resetScore);
+
+window.addEventListener("beforeunload", () => {
+  if(webcam) webcam.stop();
+});
 
 </script>
 
