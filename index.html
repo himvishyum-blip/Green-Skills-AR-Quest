@@ -39,12 +39,73 @@ footer{text-align:center;color:#719987;font-size:11px;padding:20px 0 5px;letter-
 @keyframes celebrateFade{from{opacity:0}to{opacity:1}}@keyframes grandPop{from{transform:scale(.72) translateY(25px);opacity:0}to{transform:scale(1);opacity:1}}@keyframes medalFloat{50%{transform:translateY(-12px) rotate(5deg)}}
 @media(max-width:600px){.celebration-card{border-radius:20px}.celebration-card h2{letter-spacing:0}}
 
+
+/* ULTIMATE EXPERIENCE */
+.welcome-screen{position:fixed;inset:0;z-index:30;display:grid;place-items:center;overflow:auto;background:radial-gradient(circle at 50% 40%,#104d37 0%,#041b14 48%,#010806 100%);padding:22px;transition:opacity .8s,visibility .8s}
+.welcome-screen.dismissed{opacity:0;visibility:hidden;pointer-events:none}
+#welcome3d{position:absolute;inset:0;width:100%;height:100%;opacity:.95}
+.welcome-vignette{position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 20%,#010806aa 100%);pointer-events:none}
+.welcome-content{position:relative;z-index:2;width:min(760px,100%);text-align:center;padding:28px 18px}
+.welcome-kicker{color:#8dffd0;font-size:11px;font-weight:900;letter-spacing:5px;text-shadow:0 0 18px #5fffc0}
+.welcome-title{font-size:clamp(38px,8vw,78px);line-height:.98;margin:14px 0;background:linear-gradient(100deg,#fff,#c5ff69,#5fffc0);background-clip:text;-webkit-background-clip:text;color:transparent;text-shadow:0 0 35px #6bff9a22}
+.welcome-sub{max-width:550px;margin:0 auto;color:#d2f6e4;line-height:1.7}
+.welcome-actions{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin:22px 0}
+.welcome-orbit{display:flex;justify-content:center;gap:16px;flex-wrap:wrap;color:#caffdc;font-size:12px}
+.welcome-orbit span{padding:8px 12px;border:1px solid #8bffc044;border-radius:30px;background:#06271e99;backdrop-filter:blur(8px)}
+.avatar-panel{margin:14px auto 0;max-width:620px;padding:14px;border:1px solid #8bffc044;border-radius:18px;background:#041b14aa;backdrop-filter:blur(12px)}
+.avatar-options{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:10px}
+.avatar-choice{min-width:92px;padding:10px;border:1px solid #8bffc055;border-radius:14px;background:#0b3024;color:#eafff1;font-weight:800;cursor:pointer}
+.avatar-choice b{display:block;font-size:30px;margin-bottom:4px}
+.avatar-choice.selected{border-color:#c5ff69;box-shadow:0 0 22px #aaff6c55;background:#17432e}
+.avatar-display{font-size:28px;display:inline-grid;place-items:center;width:50px;height:38px;vertical-align:middle}
+.guardian-strip{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.guardian-strip .avatar-display{font-size:26px}
+.badge-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
+.badge-item{padding:12px 5px;border:1px solid #8bffc033;border-radius:13px;background:#08271e;text-align:center;opacity:.38;filter:grayscale(1)}
+.badge-item.unlocked{opacity:1;filter:none;border-color:#b7ff62;box-shadow:0 0 18px #9aff6530;animation:badgePop .5s ease}
+.badge-item strong{display:block;font-size:11px;margin-top:5px;color:#dfffe9}
+.badge-item small{display:block;font-size:9px;color:#9fc7b3;margin-top:3px}
+@keyframes badgePop{50%{transform:scale(1.1)}}
+.earth.alive-1{filter:saturate(1.2);box-shadow:inset -18px -12px 28px #00131c,0 0 42px #56ffbeaa,0 0 110px #4bffc066}
+.earth.alive-2{filter:saturate(1.45) brightness(1.12);box-shadow:inset -18px -12px 28px #00131c,0 0 55px #8cff7c,0 0 140px #4bffc099;animation:float 3s ease-in-out infinite,planetPulse 2.5s ease-in-out infinite}
+.earth.alive-3{filter:saturate(1.7) brightness(1.2);box-shadow:inset -18px -12px 28px #00131c,0 0 65px #c5ff69,0 0 170px #4bffc0bb}
+@keyframes planetPulse{50%{box-shadow:inset -18px -12px 28px #00131c,0 0 75px #c5ff69,0 0 155px #4bffc088}}
+.vfx-flash{position:fixed;inset:0;z-index:18;pointer-events:none;background:radial-gradient(circle,#baff8b66,transparent 65%);animation:vfxFlash .55s ease-out forwards}
+@keyframes vfxFlash{to{opacity:0;transform:scale(1.5)}}
+body.impact{animation:impact .28s ease}
+@keyframes impact{25%{transform:translateX(-3px)}50%{transform:translateX(3px)}75%{transform:translateX(-2px)}}
+@media(max-width:600px){.welcome-content{padding:18px 8px}.welcome-kicker{letter-spacing:3px}.badge-grid{grid-template-columns:repeat(2,1fr)}.avatar-choice{min-width:78px}}
+
 </style>
 </head>
 <body>
+
+<div class="welcome-screen" id="welcomeScreen">
+  <canvas id="welcome3d" aria-hidden="true"></canvas><div class="welcome-vignette"></div>
+  <div class="welcome-content">
+    <div class="welcome-kicker">✦ A CINEMATIC ECO ADVENTURE ✦</div>
+    <h1 class="welcome-title">GREEN SKILLS<br>AR QUEST</h1>
+    <p class="welcome-sub">The planet needs a hero. Choose your Eco Guardian, complete missions and bring Earth back to life.</p>
+    <div class="avatar-panel">
+      <div class="welcome-kicker">CHOOSE YOUR ECO GUARDIAN</div>
+      <div class="avatar-options">
+        <button class="avatar-choice selected" data-avatar="🦸‍♀️"><b>🦸‍♀️</b>Earth Hero</button>
+        <button class="avatar-choice" data-avatar="🧝‍♀️"><b>🧝‍♀️</b>Forest Sage</button>
+        <button class="avatar-choice" data-avatar="🧑‍🚀"><b>🧑‍🚀</b>Eco Explorer</button>
+        <button class="avatar-choice" data-avatar="🤖"><b>🤖</b>Recycle Bot</button>
+      </div>
+    </div>
+    <div class="welcome-actions">
+      <button class="btn primary" id="beginQuestBtn">🚀 START YOUR QUEST</button>
+      <button class="btn secondary" id="welcomeSoundBtn">🔊 SOUND ON</button>
+    </div>
+    <div class="welcome-orbit"><span>🌳 Restore forests</span><span>🌊 Rescue oceans</span><span>♻️ Recycle smarter</span></div>
+  </div>
+</div>
+
 <canvas id="space"></canvas><div class="scanlines"></div>
 <main class="app">
-<nav class="topbar"><div class="brand"><div class="logo">🌿</div><div><small>MISSION: PLANET EARTH</small><strong>GREEN SKILLS <span style="color:var(--lime)">AR QUEST</span></strong></div></div><div class="top-actions"><span class="pill" id="levelPill">LEVEL 01 · ROOKIE</span><button class="btn secondary smallbtn" id="soundBtn">🔊 SOUND ON</button></div></nav>
+<nav class="topbar"><div class="brand"><div class="logo">🌿</div><div><small>MISSION: PLANET EARTH</small><strong>GREEN SKILLS <span style="color:var(--lime)">AR QUEST</span></strong></div></div><div class="top-actions"><span class="pill guardian-strip"><span class="avatar-display" id="activeAvatar">🦸‍♀️</span><span id="levelPill">LEVEL 01 · ROOKIE</span></span><button class="btn secondary smallbtn" id="soundBtn">🔊 SOUND ON</button></div></nav>
 <section class="hero"><div class="eyebrow">✦ THE FUTURE IS IN YOUR HANDS ✦</div><h1>BE AN ECO<br>GUARDIAN</h1><p>Scan waste with AI, protect forests, clean oceans and build a greener city. Every action restores Planet Earth.</p><div class="hero-buttons"><button class="btn primary" id="launchBtn">⚡ ENTER THE QUEST</button><button class="btn secondary" id="howBtn">HOW TO PLAY ↓</button></div></section>
 <section class="stats"><div class="stat"><span>Green score</span><strong id="score">0</strong></div><div class="stat"><span>Items rescued</span><strong id="items">0</strong></div><div class="stat"><span>Eco level</span><strong id="level">01</strong></div></section>
 <nav class="navgames" aria-label="Game navigation">
@@ -55,7 +116,16 @@ footer{text-align:center;color:#719987;font-size:11px;padding:20px 0 5px;letter-
 <div class="layout"><section>
 <div class="panel"><h2>◉ AI <em>WASTE SCANNER</em></h2><div class="camera-frame"><div id="webcam-container"><div class="placeholder">📷<br><b>AI SCANNER STANDBY</b><br>Press START CAMERA and show a plastic bottle or e-waste item.</div></div></div><div class="status" id="status">System ready. Enter the quest to begin.</div><p class="prediction" id="prediction">AI Detection: Waiting</p><p class="confidence" id="confidence">Confidence: --</p><div class="camera-actions"><button class="btn primary" id="startBtn">▶ START CAMERA</button><button class="btn secondary" id="stopBtn" disabled>■ STOP</button><button class="btn secondary" id="resetBtn">↻ RESET</button></div><p class="hint">Allow camera permission. Hold one item clearly in front of the camera in good light. AI recognition needs internet access.</p></div>
 <div class="panel"><h2>🎯 <em>SCANNER MISSIONS</em></h2><div class="mission"><span class="ico">🧴</span><div><strong>PLASTIC PURIFIER</strong><small>Show a plastic bottle to the AI scanner</small></div><span class="pts">+10 XP</span></div><div class="mission"><span class="ico">🔋</span><div><strong>E-WASTE RECLAIMER</strong><small>Identify electronic waste or a battery</small></div><span class="pts">+20 XP</span></div></div></section>
-<section><div class="panel"><h2>🌍 <em>PLANET RESTORATION</em></h2><div class="world"><div class="portal"></div><div class="earth"></div><div class="world-tree" id="tree">🌳</div><div class="world-machine" id="machine">♻️</div><div class="world-energy" id="energy"></div></div><p class="hint" id="effectMessage" style="text-align:center">Your mission can bring this world back to life.</p></div><div class="panel"><h2>🏆 <em>MISSION CONTROL</em></h2><div class="progress"><div id="progressBar"></div></div><p class="hint" id="progressText">0 / 5 successful missions to reach Eco Guardian level.</p><div class="achievement" id="achievement">🏆 ECO GUARDIAN UNLOCKED!</div></div></section></div>
+<section><div class="panel"><h2>🌍 <em>PLANET RESTORATION</em></h2><div class="world"><div class="portal"></div><div class="earth"></div><div class="world-tree" id="tree">🌳</div><div class="world-machine" id="machine">♻️</div><div class="world-energy" id="energy"></div></div><p class="hint" id="effectMessage" style="text-align:center">Your mission can bring this world back to life.</p></div>
+<div class="panel"><h2>🎖️ <em>ECO GUARDIAN BADGES</em></h2>
+<div class="badge-grid" id="badgeGrid">
+ <div class="badge-item" data-badge="first"><span style="font-size:25px">🌱</span><strong>First Step</strong><small>Earn 1 item</small></div>
+ <div class="badge-item" data-badge="five"><span style="font-size:25px">♻️</span><strong>Recycler</strong><small>Earn 5 items</small></div>
+ <div class="badge-item" data-badge="ten"><span style="font-size:25px">🌳</span><strong>Forest Friend</strong><small>Earn 10 items</small></div>
+ <div class="badge-item" data-badge="twenty"><span style="font-size:25px">🌍</span><strong>Planet Hero</strong><small>Earn 20 items</small></div>
+</div><p class="hint" id="badgeStatus">Complete missions to unlock your badges.</p></div>
+
+<div class="panel"><h2>🏆 <em>MISSION CONTROL</em></h2><div class="progress"><div id="progressBar"></div></div><p class="hint" id="progressText">0 / 5 successful missions to reach Eco Guardian level.</p><div class="achievement" id="achievement">🏆 ECO GUARDIAN UNLOCKED!</div></div></section></div>
 </section>
 
 <section class="gameview" id="view-sort"><div class="panel"><h2>♻️ <em>GAME 1 · ECO SORT CHALLENGE</em></h2><p class="hint">Tap an item, then choose the correct recycling bin. Sort five items to complete the round.</p><div class="playfield"><h3 id="sortQuestion">Choose an item to recycle</h3><div class="item-row" id="sortItems"><button class="waste-item" data-kind="plastic">🧴</button><button class="waste-item" data-kind="paper">📰</button><button class="waste-item" data-kind="metal">🥫</button><button class="waste-item" data-kind="ewaste">🔋</button></div><div class="bin-row"><button class="bin" data-bin="plastic"><span>🟦</span>PLASTIC</button><button class="bin" data-bin="paper"><span>🟨</span>PAPER</button><button class="bin" data-bin="metal"><span>🟥</span>METAL</button><button class="bin" data-bin="ewaste"><span>🟪</span>E-WASTE</button></div><div class="game-result" id="sortResult">Select an item to begin.</div><button class="btn primary" id="sortReset">↻ NEW ROUND</button></div></div></section>
@@ -82,14 +152,78 @@ footer{text-align:center;color:#719987;font-size:11px;padding:20px 0 5px;letter-
 <div class="toast" id="toast">MISSION COMPLETE!</div>
 <script>
 const MODEL_URL="https://teachablemachine.withgoogle.com/models/TtI0zkQlZ/";
-let model=null,webcam=null,running=false,busy=false,score=0,items=0,lastAwardTime=0,frameId=null,soundOn=true,audioCtx=null,celebrationShown=false;
+let model=null,webcam=null,running=false,busy=false,score=0,items=0,lastAwardTime=0,frameId=null,soundOn=true,audioCtx=null,celebrationShown=false,selectedAvatar="🦸‍♀️";
 const $=id=>document.getElementById(id);
+
+// Cinematic welcome planet: lightweight Three.js scene with a glowing living world.
+(function initWelcome3D(){
+  const canvas=$('welcome3d'); if(!canvas||!window.THREE)return;
+  try{
+    const renderer=new THREE.WebGLRenderer({canvas,alpha:true,antialias:true});
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.7));
+    const scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(42,1,.1,100);
+    camera.position.z=6.2;
+    scene.add(new THREE.AmbientLight(0x8affc1,1.15));
+    const key=new THREE.PointLight(0x8cffbd,2.5,30);key.position.set(-3,3,5);scene.add(key);
+    const earth=new THREE.Mesh(new THREE.SphereGeometry(1.42,64,64),new THREE.MeshStandardMaterial({color:0x168c70,roughness:.72,metalness:.05,emissive:0x063d2c,emissiveIntensity:.65}));
+    scene.add(earth);
+    const cloud=new THREE.Mesh(new THREE.SphereGeometry(1.46,48,48),new THREE.MeshBasicMaterial({color:0x9bffd0,transparent:true,opacity:.09,wireframe:true}));scene.add(cloud);
+    const ring=new THREE.Mesh(new THREE.TorusGeometry(2.05,.018,8,160),new THREE.MeshBasicMaterial({color:0x75ffd0,transparent:true,opacity:.65}));ring.rotation.x=1.08;ring.rotation.y=.28;scene.add(ring);
+    const starsGeo=new THREE.BufferGeometry(),starPos=[];
+    for(let i=0;i<650;i++){starPos.push((Math.random()-.5)*18,(Math.random()-.5)*12,(Math.random()-.5)*8-2)}
+    starsGeo.setAttribute('position',new THREE.Float32BufferAttribute(starPos,3));
+    scene.add(new THREE.Points(starsGeo,new THREE.PointsMaterial({color:0x9bffd0,size:.025,transparent:true,opacity:.8})));
+    function resize(){const w=innerWidth,h=innerHeight;renderer.setSize(w,h);camera.aspect=w/h;camera.updateProjectionMatrix()}
+    resize();addEventListener('resize',resize);
+    function animate(){requestAnimationFrame(animate);earth.rotation.y+=.0025;cloud.rotation.y-=.0015;ring.rotation.z+=.001;renderer.render(scene,camera)}
+    animate();
+  }catch(e){console.warn('Welcome 3D scene unavailable',e)}
+})();
+document.querySelectorAll('.avatar-choice').forEach(b=>b.addEventListener('click',()=>{
+  selectedAvatar=b.dataset.avatar;$('activeAvatar').textContent=selectedAvatar;
+  document.querySelectorAll('.avatar-choice').forEach(x=>x.classList.toggle('selected',x===b));
+  sfx('click');
+}));
+function enterQuest(){
+  $('welcomeScreen').classList.add('dismissed');
+  sfx('start');
+  $('status').textContent='Welcome, '+selectedAvatar+' Eco Guardian! Your planet-saving quest begins now.';
+}
+$('beginQuestBtn').addEventListener('click',enterQuest);
+$('welcomeSoundBtn').addEventListener('click',()=>{
+  soundOn=!soundOn;$('welcomeSoundBtn').textContent=soundOn?'🔊 SOUND ON':'🔇 SOUND OFF';
+  $('soundBtn').textContent=soundOn?'🔊 SOUND ON':'🔇 SOUND OFF';if(soundOn)sfx('start');
+});
+
 (function initSpace(){if(!window.THREE)return;try{const canvas=$('space'),renderer=new THREE.WebGLRenderer({canvas,alpha:true,antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));const scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(60,innerWidth/innerHeight,.1,1000);camera.position.z=55;const group=new THREE.Group();scene.add(group);const count=650,pos=new Float32Array(count*3),col=new Float32Array(count*3);for(let i=0;i<count;i++){const r=18+Math.random()*90,a=Math.random()*Math.PI*2,b=Math.acos(2*Math.random()-1);pos[i*3]=r*Math.sin(b)*Math.cos(a);pos[i*3+1]=r*Math.sin(b)*Math.sin(a);pos[i*3+2]=r*Math.cos(b);col[i*3]=.15;col[i*3+1]=.55+Math.random()*.4;col[i*3+2]=.5+Math.random()*.4}const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.BufferAttribute(pos,3));geo.setAttribute('color',new THREE.BufferAttribute(col,3));group.add(new THREE.Points(geo,new THREE.PointsMaterial({size:.23,vertexColors:true,transparent:true,opacity:.8})));const ring=new THREE.Mesh(new THREE.TorusGeometry(17,.035,8,150),new THREE.MeshBasicMaterial({color:0x4cffb1,transparent:true,opacity:.18}));ring.rotation.x=1.12;group.add(ring);function resize(){renderer.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix()}resize();addEventListener('resize',resize);function animate(){requestAnimationFrame(animate);group.rotation.y+=.0005;ring.rotation.z+=.001;renderer.render(scene,camera)}animate()}catch(e){console.warn('3D background unavailable',e)}})();
 function tone(freq=440,duration=.14,type='sine',volume=.04,delay=0){if(!soundOn)return;try{audioCtx=audioCtx||new(window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==='suspended')audioCtx.resume();const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type=type;o.frequency.setValueAtTime(freq,audioCtx.currentTime+delay);g.gain.setValueAtTime(volume,audioCtx.currentTime+delay);g.gain.exponentialRampToValueAtTime(.001,audioCtx.currentTime+delay+duration);o.connect(g);g.connect(audioCtx.destination);o.start(audioCtx.currentTime+delay);o.stop(audioCtx.currentTime+delay+duration)}catch(e){}}
-function sfx(kind){if(kind==='good'){[523,659,784].forEach((f,i)=>tone(f,.22,'sine',.045,i*.1))}else if(kind==='bad'){tone(180,.22,'sawtooth',.035)}else if(kind==='start'){tone(330,.12);tone(660,.2,'sine',.04,.12)}else tone(440,.08,'sine',.025)}
-$('soundBtn').onclick=()=>{soundOn=!soundOn;$('soundBtn').textContent=soundOn?'🔊 SOUND ON':'🔇 SOUND OFF';if(soundOn)sfx('start')};
+function sfx(kind){if(kind==='good'){[523,659,784,1046].forEach((f,i)=>tone(f,.22,'sine',.045,i*.085))}
+else if(kind==='bad'){tone(180,.22,'sawtooth',.035)}
+else if(kind==='start'){tone(330,.12);tone(660,.2,'sine',.04,.12);tone(880,.25,'triangle',.035,.25)}
+else if(kind==='level'){[392,523,659,784,1046].forEach((f,i)=>tone(f,.32,'triangle',.05,i*.11))}
+else if(kind==='badge'){[660,880,1175].forEach((f,i)=>tone(f,.25,'sine',.045,i*.1))}
+else if(kind==='click')tone(440,.07,'sine',.02);
+else tone(440,.08,'sine',.025)}
+function vfxBurst(){
+  const flash=document.createElement('div');flash.className='vfx-flash';document.body.appendChild(flash);setTimeout(()=>flash.remove(),600);
+  document.body.classList.remove('impact');void document.body.offsetWidth;document.body.classList.add('impact');setTimeout(()=>document.body.classList.remove('impact'),320);
+}
+$('soundBtn').onclick=()=>{soundOn=!soundOn;$('soundBtn').textContent=soundOn?'🔊 SOUND ON':'🔇 SOUND OFF';$('welcomeSoundBtn').textContent=soundOn?'🔊 SOUND ON':'🔇 SOUND OFF';if(soundOn)sfx('start')};
 function toast(t){$('toast').textContent=t;$('toast').classList.add('show');setTimeout(()=>$('toast').classList.remove('show'),1900)}
-function addScore(n,label){score+=n;items++;$('score').textContent=score;$('items').textContent=items;$('effectMessage').textContent=label+' · +'+n+' green XP';sfx('good');updateLevel();toast('+'+n+' XP · '+label);celebrate();if(score>=50&&!celebrationShown){celebrationShown=true;showBigCongratulations()}}
+function updateLivingPlanet(){
+  const earth=$('view-scanner').querySelector('.earth');
+  earth.classList.remove('alive-1','alive-2','alive-3');
+  if(score>=100)earth.classList.add('alive-3');else if(score>=50)earth.classList.add('alive-2');else if(score>=20)earth.classList.add('alive-1');
+  $('effectMessage').textContent=score>=100?'🌍 Planet restored! Your actions made a powerful difference.':score>=50?'🌿 The planet is glowing with new life!':score>=20?'🌱 Nature is beginning to recover!':'Your mission can bring this world back to life.';
+}
+function updateBadges(){
+  const levels=[['first',1,'First Step'],['five',5,'Recycler'],['ten',10,'Forest Friend'],['twenty',20,'Planet Hero']];
+  let unlocked=[];
+  levels.forEach(([id,need,name])=>{const el=document.querySelector('[data-badge="'+id+'"]');if(items>=need&&!el.classList.contains('unlocked')){el.classList.add('unlocked');unlocked.push(name)}});
+  if(unlocked.length){$('badgeStatus').textContent='Badge unlocked: '+unlocked.join(', ')+'!';sfx('badge');toast('🎖️ '+unlocked[0]+' BADGE UNLOCKED!');vfxBurst()}
+  else $('badgeStatus').textContent='Next badge: '+(items<1?'First Step':items<5?'Recycler':items<10?'Forest Friend':'Planet Hero');
+}
+function addScore(n,label){score+=n;items++;$('score').textContent=score;$('items').textContent=items;$('effectMessage').textContent=label+' · +'+n+' green XP';sfx('good');updateLevel();updateBadges();updateLivingPlanet();toast('+'+n+' XP · '+label);celebrate();if(score>=50&&!celebrationShown){celebrationShown=true;showBigCongratulations()}}
 function showBigCongratulations(){const screen=$('celebrationScreen');screen.classList.add('show');document.body.style.overflow='hidden';sfx('level');for(let i=0;i<70;i++){const e=document.createElement('span');e.className='confetti';e.textContent=['🏆','✨','🌿','⭐','♻️','💚'][Math.floor(Math.random()*6)];e.style.left=Math.random()*100+'vw';e.style.top=Math.random()*100+'vh';e.style.setProperty('--dx',(Math.random()*500-250)+'px');e.style.setProperty('--dy',(Math.random()*-500-50)+'px');document.body.appendChild(e);setTimeout(()=>e.remove(),1900)}}
 function closeBigCongratulations(){$('celebrationScreen').classList.remove('show');document.body.style.overflow=''}
 $('celebrationClose').addEventListener('click',closeBigCongratulations);
@@ -108,7 +242,7 @@ async function predictWaste(){const preds=await model.predict(webcam.canvas),bes
 function awardScan(n,label,effect){if(Date.now()-lastAwardTime<5000)return;lastAwardTime=Date.now();addScore(n,label);if(effect==='tree'){$('tree').classList.remove('grow');void $('tree').offsetWidth;$('tree').classList.add('grow')}else{$('machine').classList.remove('active');void $('machine').offsetWidth;$('machine').classList.add('active');const host=$('energy');host.innerHTML='';['⚡','✨','♻️','🌟','💚'].forEach((x,i)=>{const el=document.createElement('i');el.textContent=x;const a=i*6.28/5;el.style.setProperty('--x',Math.cos(a)*110+'px');el.style.setProperty('--y',Math.sin(a)*110+'px');host.appendChild(el)});setTimeout(()=>host.innerHTML='',1400)}setStatus('Excellent! '+label+' detected. +'+n+' points!')}
 async function stopApp(){running=false;if(frameId)cancelAnimationFrame(frameId);if(webcam){try{webcam.stop()}catch(e){}webcam=null}$('webcam-container').innerHTML='<div class="placeholder">📷<br><b>SCANNER PAUSED</b><br>Press START CAMERA to resume.</div>';$('startBtn').disabled=false;$('stopBtn').disabled=true;setStatus('Camera stopped.')}
 $('startBtn').onclick=startApp;$('stopBtn').onclick=stopApp;
-$('resetBtn').onclick=()=>{closeBigCongratulations();celebrationShown=false;score=0;items=0;lastAwardTime=0;$('score').textContent='0';$('items').textContent='0';$('level').textContent='01';$('levelPill').textContent='LEVEL 01 · ROOKIE';$('progressBar').style.width='0%';$('progressText').textContent='0 / 5 missions completed';$('achievement').classList.remove('show');$('tree').classList.remove('grow');$('machine').classList.remove('active');$('effectMessage').textContent='Your mission can bring this world back to life.';setStatus('Score reset.');};
+$('resetBtn').onclick=()=>{closeBigCongratulations();celebrationShown=false;score=0;items=0;lastAwardTime=0;$('score').textContent='0';$('items').textContent='0';$('level').textContent='01';$('levelPill').textContent='LEVEL 01 · ROOKIE';$('progressBar').style.width='0%';$('progressText').textContent='0 / 5 missions completed';$('achievement').classList.remove('show');$('tree').classList.remove('grow');$('machine').classList.remove('active');document.querySelectorAll('.badge-item').forEach(b=>b.classList.remove('unlocked'));$('badgeStatus').textContent='Complete missions to unlock your badges.';updateLivingPlanet();$('effectMessage').textContent='Your mission can bring this world back to life.';setStatus('Score reset.');};
 
 // Game 1: Eco Sort
 const sortData=[['🧴','plastic','Plastic bottle'],['📰','paper','Newspaper'],['🥫','metal','Tin can'],['🔋','ewaste','Battery'],['🧴','plastic','Plastic bottle'],['📰','paper','Newspaper'],['🥫','metal','Tin can'],['🔋','ewaste','Battery']];
