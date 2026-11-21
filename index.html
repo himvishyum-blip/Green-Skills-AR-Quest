@@ -26,6 +26,19 @@
 footer{text-align:center;color:#719987;font-size:11px;padding:20px 0 5px;letter-spacing:1px}
 @media(max-width:760px){.layout{grid-template-columns:1fr}.hero{padding-top:15px}.stats{gap:7px}.stat{padding:12px 5px}.stat strong{font-size:22px}.stat span{font-size:9px}.topbar{align-items:flex-start}.brand strong{font-size:13px}.pill{font-size:10px;padding:8px}.panel{padding:14px}.world{min-height:310px}.navgames{justify-content:flex-start;overflow-x:auto;flex-wrap:nowrap;padding-bottom:7px}.navgames button{white-space:nowrap}.playfield{padding:12px}.waste-item{font-size:35px;min-width:70px}.bin{min-width:105px}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important}}
+
+/* BIG SCREEN 50-POINT CELEBRATION */
+.celebration-screen{position:fixed;inset:0;z-index:9999;display:none;align-items:center;justify-content:center;padding:22px;background:radial-gradient(circle at 50% 45%,rgba(31,112,72,.96),rgba(1,10,8,.98) 72%);backdrop-filter:blur(12px);text-align:center;overflow:hidden}
+.celebration-screen.show{display:flex;animation:celebrateFade .45s ease-out}
+.celebration-card{width:min(850px,100%);padding:clamp(25px,6vw,65px) 20px;border:2px solid #b7ff62;border-radius:28px;background:linear-gradient(145deg,rgba(12,55,39,.96),rgba(2,20,15,.97));box-shadow:0 0 35px #9bff7a66,0 0 110px #54ffb744,inset 0 0 35px #aaff6c18;animation:grandPop .7s cubic-bezier(.2,.9,.2,1)}
+.celebration-icon{font-size:clamp(55px,12vw,100px);filter:drop-shadow(0 0 22px #c5ff69);animation:medalFloat 2s ease-in-out infinite}
+.celebration-card h2{font-size:clamp(38px,9vw,82px);line-height:1;margin:16px 0;color:#c5ff69;text-shadow:0 0 28px #aaff6c88;letter-spacing:2px}
+.celebration-score{font-size:clamp(22px,5vw,38px);font-weight:1000;color:#fff;margin:10px 0 20px}
+.celebration-quote{max-width:680px;margin:0 auto 28px;color:#e2ffed;font-size:clamp(17px,3vw,25px);line-height:1.55;font-weight:700}
+.celebration-quote span{display:block;color:#b7ff62;font-size:.72em;letter-spacing:2px;margin-top:12px}
+@keyframes celebrateFade{from{opacity:0}to{opacity:1}}@keyframes grandPop{from{transform:scale(.72) translateY(25px);opacity:0}to{transform:scale(1);opacity:1}}@keyframes medalFloat{50%{transform:translateY(-12px) rotate(5deg)}}
+@media(max-width:600px){.celebration-card{border-radius:20px}.celebration-card h2{letter-spacing:0}}
+
 </style>
 </head>
 <body>
@@ -54,17 +67,32 @@ footer{text-align:center;color:#719987;font-size:11px;padding:20px 0 5px;letter-
 <section class="gameview" id="view-ocean"><div class="panel"><h2>🌊 <em>GAME 4 · OCEAN RESCUE</em></h2><p class="hint">Tap the floating plastic and rubbish to clean the sea. Avoid tapping the fish and turtle!</p><div class="playfield"><h3>MISSION: SAVE MARINE LIFE</h3><div style="font-size:36px">🐬 🐠 🐢 🐟</div><div class="falling-area" id="oceanArea" style="background:linear-gradient(#087b91,#06465b 70%,#052b3c)"><div style="padding:70px 10px;color:#d5fbff">Press START OCEAN RESCUE</div></div><div class="game-result" id="oceanResult">Plastic collected: 0 / 8 · Marine life safe!</div><div class="gamebuttons"><button class="btn primary" id="oceanStart">▶ START</button><button class="btn secondary" id="oceanReset">↻ RESET</button></div><div class="touch-note">Mobile: tap rubbish to remove it. Leave sea creatures alone.</div></div></div></section>
 
 <footer>GREEN SKILLS AR QUEST · AI FOR A SUSTAINABLE FUTURE · MADE FOR ECO GUARDIANS</footer>
-</main><div class="toast" id="toast">MISSION COMPLETE!</div>
+</main>
+<div class="celebration-screen" id="celebrationScreen" role="dialog" aria-modal="true" aria-labelledby="celebrationTitle">
+  <div class="celebration-card">
+    <div class="celebration-icon">🏆🌍</div>
+    <div style="color:#5fffc0;font-weight:900;letter-spacing:4px;font-size:12px">MISSION MILESTONE ACHIEVED</div>
+    <h2 id="celebrationTitle">CONGRATULATIONS!</h2>
+    <div class="celebration-score">YOU SCORED 50 GREEN POINTS! 🌟</div>
+    <p class="celebration-quote">“Amazing work, Eco Guardian! Your actions prove that small steps can create a greener world. Keep shining, keep caring, and keep making a difference!”<span>— THE PLANET IS PROUD OF YOU</span></p>
+    <button class="btn primary" id="celebrationClose" type="button">CONTINUE THE QUEST 🌱</button>
+  </div>
+</div>
+
+<div class="toast" id="toast">MISSION COMPLETE!</div>
 <script>
 const MODEL_URL="https://teachablemachine.withgoogle.com/models/TtI0zkQlZ/";
-let model=null,webcam=null,running=false,busy=false,score=0,items=0,lastAwardTime=0,frameId=null,soundOn=true,audioCtx=null;
+let model=null,webcam=null,running=false,busy=false,score=0,items=0,lastAwardTime=0,frameId=null,soundOn=true,audioCtx=null,celebrationShown=false;
 const $=id=>document.getElementById(id);
 (function initSpace(){if(!window.THREE)return;try{const canvas=$('space'),renderer=new THREE.WebGLRenderer({canvas,alpha:true,antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));const scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(60,innerWidth/innerHeight,.1,1000);camera.position.z=55;const group=new THREE.Group();scene.add(group);const count=650,pos=new Float32Array(count*3),col=new Float32Array(count*3);for(let i=0;i<count;i++){const r=18+Math.random()*90,a=Math.random()*Math.PI*2,b=Math.acos(2*Math.random()-1);pos[i*3]=r*Math.sin(b)*Math.cos(a);pos[i*3+1]=r*Math.sin(b)*Math.sin(a);pos[i*3+2]=r*Math.cos(b);col[i*3]=.15;col[i*3+1]=.55+Math.random()*.4;col[i*3+2]=.5+Math.random()*.4}const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.BufferAttribute(pos,3));geo.setAttribute('color',new THREE.BufferAttribute(col,3));group.add(new THREE.Points(geo,new THREE.PointsMaterial({size:.23,vertexColors:true,transparent:true,opacity:.8})));const ring=new THREE.Mesh(new THREE.TorusGeometry(17,.035,8,150),new THREE.MeshBasicMaterial({color:0x4cffb1,transparent:true,opacity:.18}));ring.rotation.x=1.12;group.add(ring);function resize(){renderer.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix()}resize();addEventListener('resize',resize);function animate(){requestAnimationFrame(animate);group.rotation.y+=.0005;ring.rotation.z+=.001;renderer.render(scene,camera)}animate()}catch(e){console.warn('3D background unavailable',e)}})();
 function tone(freq=440,duration=.14,type='sine',volume=.04,delay=0){if(!soundOn)return;try{audioCtx=audioCtx||new(window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==='suspended')audioCtx.resume();const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type=type;o.frequency.setValueAtTime(freq,audioCtx.currentTime+delay);g.gain.setValueAtTime(volume,audioCtx.currentTime+delay);g.gain.exponentialRampToValueAtTime(.001,audioCtx.currentTime+delay+duration);o.connect(g);g.connect(audioCtx.destination);o.start(audioCtx.currentTime+delay);o.stop(audioCtx.currentTime+delay+duration)}catch(e){}}
 function sfx(kind){if(kind==='good'){[523,659,784].forEach((f,i)=>tone(f,.22,'sine',.045,i*.1))}else if(kind==='bad'){tone(180,.22,'sawtooth',.035)}else if(kind==='start'){tone(330,.12);tone(660,.2,'sine',.04,.12)}else tone(440,.08,'sine',.025)}
 $('soundBtn').onclick=()=>{soundOn=!soundOn;$('soundBtn').textContent=soundOn?'🔊 SOUND ON':'🔇 SOUND OFF';if(soundOn)sfx('start')};
 function toast(t){$('toast').textContent=t;$('toast').classList.add('show');setTimeout(()=>$('toast').classList.remove('show'),1900)}
-function addScore(n,label){score+=n;items++;$('score').textContent=score;$('items').textContent=items;$('effectMessage').textContent=label+' · +'+n+' green XP';sfx('good');updateLevel();toast('+'+n+' XP · '+label);celebrate()}
+function addScore(n,label){score+=n;items++;$('score').textContent=score;$('items').textContent=items;$('effectMessage').textContent=label+' · +'+n+' green XP';sfx('good');updateLevel();toast('+'+n+' XP · '+label);celebrate();if(score>=50&&!celebrationShown){celebrationShown=true;showBigCongratulations()}}
+function showBigCongratulations(){const screen=$('celebrationScreen');screen.classList.add('show');document.body.style.overflow='hidden';sfx('level');for(let i=0;i<70;i++){const e=document.createElement('span');e.className='confetti';e.textContent=['🏆','✨','🌿','⭐','♻️','💚'][Math.floor(Math.random()*6)];e.style.left=Math.random()*100+'vw';e.style.top=Math.random()*100+'vh';e.style.setProperty('--dx',(Math.random()*500-250)+'px');e.style.setProperty('--dy',(Math.random()*-500-50)+'px');document.body.appendChild(e);setTimeout(()=>e.remove(),1900)}}
+function closeBigCongratulations(){$('celebrationScreen').classList.remove('show');document.body.style.overflow=''}
+$('celebrationClose').addEventListener('click',closeBigCongratulations);
 function updateLevel(){const lv=Math.min(5,Math.floor(items/5)+1);$('level').textContent=String(lv).padStart(2,'0');$('levelPill').textContent='LEVEL '+String(lv).padStart(2,'0')+' · '+(lv>=5?'PLANET HERO':lv>=3?'ECO RANGER':'ROOKIE');const p=Math.min(items,5);$('progressBar').style.width=(p*20)+'%';$('progressText').textContent=p+' / 5 missions completed';if(items>=5)$('achievement').classList.add('show')}
 function celebrate(){const sy=['✨','🌿','⭐','♻️','💚'];for(let i=0;i<15;i++){const e=document.createElement('span');e.className='confetti';e.textContent=sy[Math.floor(Math.random()*sy.length)];e.style.left=(45+Math.random()*10)+'vw';e.style.top='55vh';e.style.setProperty('--dx',(Math.random()*300-150)+'px');e.style.setProperty('--dy',(Math.random()*-300-30)+'px');document.body.appendChild(e);setTimeout(()=>e.remove(),1700)}}
 function showTab(name){document.querySelectorAll('.gameview').forEach(v=>v.classList.remove('active'));$('view-'+name).classList.add('active');document.querySelectorAll('.navgames button').forEach(b=>b.classList.toggle('active',b.dataset.view===name));sfx('click');}
@@ -80,7 +108,7 @@ async function predictWaste(){const preds=await model.predict(webcam.canvas),bes
 function awardScan(n,label,effect){if(Date.now()-lastAwardTime<5000)return;lastAwardTime=Date.now();addScore(n,label);if(effect==='tree'){$('tree').classList.remove('grow');void $('tree').offsetWidth;$('tree').classList.add('grow')}else{$('machine').classList.remove('active');void $('machine').offsetWidth;$('machine').classList.add('active');const host=$('energy');host.innerHTML='';['⚡','✨','♻️','🌟','💚'].forEach((x,i)=>{const el=document.createElement('i');el.textContent=x;const a=i*6.28/5;el.style.setProperty('--x',Math.cos(a)*110+'px');el.style.setProperty('--y',Math.sin(a)*110+'px');host.appendChild(el)});setTimeout(()=>host.innerHTML='',1400)}setStatus('Excellent! '+label+' detected. +'+n+' points!')}
 async function stopApp(){running=false;if(frameId)cancelAnimationFrame(frameId);if(webcam){try{webcam.stop()}catch(e){}webcam=null}$('webcam-container').innerHTML='<div class="placeholder">📷<br><b>SCANNER PAUSED</b><br>Press START CAMERA to resume.</div>';$('startBtn').disabled=false;$('stopBtn').disabled=true;setStatus('Camera stopped.')}
 $('startBtn').onclick=startApp;$('stopBtn').onclick=stopApp;
-$('resetBtn').onclick=()=>{score=0;items=0;lastAwardTime=0;$('score').textContent='0';$('items').textContent='0';$('level').textContent='01';$('levelPill').textContent='LEVEL 01 · ROOKIE';$('progressBar').style.width='0%';$('progressText').textContent='0 / 5 missions completed';$('achievement').classList.remove('show');$('tree').classList.remove('grow');$('machine').classList.remove('active');$('effectMessage').textContent='Your mission can bring this world back to life.';setStatus('Score reset.');};
+$('resetBtn').onclick=()=>{closeBigCongratulations();celebrationShown=false;score=0;items=0;lastAwardTime=0;$('score').textContent='0';$('items').textContent='0';$('level').textContent='01';$('levelPill').textContent='LEVEL 01 · ROOKIE';$('progressBar').style.width='0%';$('progressText').textContent='0 / 5 missions completed';$('achievement').classList.remove('show');$('tree').classList.remove('grow');$('machine').classList.remove('active');$('effectMessage').textContent='Your mission can bring this world back to life.';setStatus('Score reset.');};
 
 // Game 1: Eco Sort
 const sortData=[['🧴','plastic','Plastic bottle'],['📰','paper','Newspaper'],['🥫','metal','Tin can'],['🔋','ewaste','Battery'],['🧴','plastic','Plastic bottle'],['📰','paper','Newspaper'],['🥫','metal','Tin can'],['🔋','ewaste','Battery']];
